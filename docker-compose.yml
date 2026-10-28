@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: geomine_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://geomine_user:geomine_pass@postgres:5432/geominedb}
+      - SECRET_KEY=${SECRET_KEY:-geomine_docker_secret_key_2026}
+      - ENVIRONMENT=production
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: geomine_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: geomine_user
+      POSTGRES_PASSWORD: geomine_pass
+      POSTGRES_DB: geominedb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+

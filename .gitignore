@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+backend/venv/
+.venv/
+env/
+
+# Production Build Artifacts
+dist/
+dist-ssr/
+build/
+*.local
+
+# Environment & Secrets (Crucial: Never commit credentials)
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Local Databases & User Uploads
+*.db
+*.sqlite3
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# IDEs & OS Files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Testing Sidecars & Playwright
+.playwright-mcp/
+
+# Large raw media, presentations & temporary files
+*.pdf
+*.pptx
+*.mp4
+*.traineddata
+deepak smart.jpeg
+*ChatGPT Image*
