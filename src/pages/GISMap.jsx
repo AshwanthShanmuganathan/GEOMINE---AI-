@@ -301,63 +301,92 @@ export default function GISMap() {
 
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div className="page-header" style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                        <h1>District Spatial Intelligence</h1>
-                        <p className="subtitle">Real-time PostgreSQL geographical overview of {districtInfo ? districtInfo.name : 'Regional'} operational boundaries.</p>
+            {/* Page Header Banner */}
+            <div className="page-header-banner" style={{ marginBottom: 16 }}>
+                <div className="banner-left">
+                    <div className="banner-icon-box">
+                        <MapPin size={26} />
                     </div>
-                    {loading && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--accent)' }}>
-                            <RefreshCw size={14} className="spin" /> Syncing GIS Spatial Nodes...
-                        </div>
-                    )}
+                    <div className="banner-title-area">
+                        <h1>District Spatial Intelligence & GIS Map</h1>
+                        <p>Real-time PostgreSQL geographical overview and satellite mapping of {districtInfo ? districtInfo.name : 'Regional'} operational boundaries.</p>
+                    </div>
+                </div>
+
+                <div className="banner-photo-area">
+                    <img 
+                        src="/mine1.jpg" 
+                        alt="GIS Spatial Intelligence" 
+                        className="banner-mine-img"
+                        onError={e => { e.currentTarget.src = '/tn-map.jpg'; }}
+                    />
+                    <div className="banner-photo-overlay" />
                 </div>
             </div>
 
             {error && (
                 <div style={{
-                    padding: '10px 16px',
-                    marginBottom: 12,
-                    background: 'rgba(212, 80, 80, 0.12)',
-                    border: '1px solid rgba(212, 80, 80, 0.35)',
-                    borderRadius: 6,
+                    padding: '12px 16px',
+                    marginBottom: 16,
+                    background: '#FEF2F2',
+                    border: '1px solid #FCA5A5',
+                    borderRadius: 10,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#ff6b6b', fontSize: 13 }}>
-                        <AlertTriangle size={16} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#B91C1C', fontSize: 13, fontWeight: 600 }}>
+                        <AlertTriangle size={18} />
                         <span>{error}</span>
                     </div>
-                    <button className="btn btn-sm" onClick={loadGISData}>Retry</button>
+                    <button className="btn-secondary" onClick={loadGISData} style={{ padding: '6px 14px', fontSize: 12 }}>Retry</button>
                 </div>
             )}
 
-            {/* Stats Bar */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-                {[
-                    { label: 'Plotted Sites', value: plottedLocations.length, color: '#22c55e', icon: <MapPin size={14} /> },
-                    { label: 'High Risk', value: stats.high, color: '#ef4444', icon: <AlertTriangle size={14} /> },
-                    { label: 'Open Violations', value: stats.totalViolations, color: '#f59e0b', icon: <Shield size={14} /> },
-                    { label: 'Pending Coords', value: pendingLocations.length, color: '#6b7280', icon: <Clock size={14} /> },
-                ].map((s, i) => (
-                    <div key={i} style={{
-                        flex: '1 1 140px', padding: '12px 16px',
-                        background: 'var(--surface-card)', border: '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: 12
-                    }}>
-                        <div style={{
-                            width: 36, height: 36, borderRadius: '50%',
-                            background: `${s.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: s.color
-                        }}>{s.icon}</div>
-                        <div>
-                            <div style={{ fontSize: 20, fontWeight: 700, color: s.color }}>{s.value}</div>
-                            <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{s.label}</div>
+            {/* KPI Stats Cards */}
+            <div className="kpi-cards-grid" style={{ marginBottom: 16 }}>
+                <div className="kpi-stat-card card-cyan">
+                    <div className="kpi-stat-top">
+                        <div className="kpi-icon-circle bg-cyan">
+                            <MapPin size={20} />
                         </div>
                     </div>
-                ))}
+                    <div className="kpi-label">Plotted Sites</div>
+                    <div className="kpi-number">{plottedLocations.length}</div>
+                </div>
+
+                <div className="kpi-stat-card card-red">
+                    <div className="kpi-stat-top">
+                        <div className="kpi-icon-circle bg-red">
+                            <AlertTriangle size={20} />
+                        </div>
+                        <div className="kpi-trend-pill trend-neutral">Critical</div>
+                    </div>
+                    <div className="kpi-label">High-Risk Sites</div>
+                    <div className="kpi-number">{stats.high}</div>
+                </div>
+
+                <div className="kpi-stat-card card-amber">
+                    <div className="kpi-stat-top">
+                        <div className="kpi-icon-circle bg-amber">
+                            <Shield size={20} />
+                        </div>
+                        <div className="kpi-trend-pill trend-up">Attention</div>
+                    </div>
+                    <div className="kpi-label">Open Violations</div>
+                    <div className="kpi-number">{stats.totalViolations}</div>
+                </div>
+
+                <div className="kpi-stat-card card-green">
+                    <div className="kpi-stat-top">
+                        <div className="kpi-icon-circle bg-green">
+                            <Clock size={20} />
+                        </div>
+                        <div className="kpi-trend-pill trend-up">Database</div>
+                    </div>
+                    <div className="kpi-label">Pending Coords</div>
+                    <div className="kpi-number">{pendingLocations.length}</div>
+                </div>
             </div>
 
             <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 0 }}>
@@ -482,13 +511,14 @@ export default function GISMap() {
                                 key={key}
                                 onClick={() => setActiveTile(key)}
                                 style={{
-                                    padding: '6px 12px', fontSize: 11, fontWeight: 600,
-                                    background: activeTile === key ? 'var(--accent)' : 'rgba(26,29,38,0.9)',
-                                    color: activeTile === key ? '#000' : '#ccc',
-                                    border: `1px solid ${activeTile === key ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}`,
-                                    borderRadius: 6, cursor: 'pointer',
-                                    backdropFilter: 'blur(10px)',
-                                    transition: 'all 0.2s ease'
+                                    padding: '7px 14px', fontSize: 12, fontWeight: 600,
+                                    background: activeTile === key ? 'var(--primary-dark)' : 'rgba(255,255,255,0.95)',
+                                    color: activeTile === key ? '#FFFFFF' : 'var(--text-primary)',
+                                    border: `1px solid ${activeTile === key ? 'var(--primary-dark)' : 'var(--border-subtle)'}`,
+                                    borderRadius: 8, cursor: 'pointer',
+                                    backdropFilter: 'blur(8px)',
+                                    boxShadow: activeTile === key ? '0 2px 8px rgba(6,78,59,0.25)' : '0 2px 6px rgba(0,0,0,0.06)',
+                                    transition: 'all 0.15s ease'
                                 }}
                             >
                                 {tile.name}
@@ -500,25 +530,25 @@ export default function GISMap() {
                     {showLegend && (
                         <div style={{
                             position: 'absolute', bottom: 32, left: 16, zIndex: 1000,
-                            background: 'rgba(20,22,30,0.95)', border: '1px solid var(--border-subtle)',
-                            borderRadius: 8, padding: '12px 16px', backdropFilter: 'blur(10px)',
-                            minWidth: 180
+                            background: 'rgba(255,255,255,0.96)', border: '1px solid var(--border-subtle)',
+                            borderRadius: 10, padding: '14px 18px', backdropFilter: 'blur(10px)',
+                            minWidth: 190, boxShadow: '0 8px 24px rgba(0,0,0,0.1)'
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Legend</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary-dark)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Legend</span>
                                 <button onClick={() => setShowLegend(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: 'var(--text-muted)' }}>
-                                    <X size={12} />
+                                    <X size={13} />
                                 </button>
                             </div>
                             {[
                                 { color: '#ef4444', label: 'High Risk Mine', shape: 'circle-lg' },
                                 { color: '#f59e0b', label: 'Medium Risk Mine', shape: 'circle' },
-                                { color: '#22c55e', label: 'Low Risk Mine', shape: 'circle-sm' },
-                                { color: '#c8956c', label: 'District Boundary', shape: 'line' },
-                                { color: '#dc2626', label: 'Violation', shape: 'diamond' },
-                                { color: '#3b82f6', label: 'Inspection', shape: 'square' },
+                                { color: '#10b981', label: 'Low Risk Mine', shape: 'circle-sm' },
+                                { color: '#064e3b', label: 'District Boundary', shape: 'line' },
+                                { color: '#dc2626', label: 'Violation Point', shape: 'diamond' },
+                                { color: '#3b82f6', label: 'Inspection Site', shape: 'square' },
                             ].map((item, i) => (
-                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 7 }}>
                                     {item.shape === 'line' ? (
                                         <div style={{ width: 16, height: 0, borderTop: `2px dashed ${item.color}` }}></div>
                                     ) : (
@@ -528,11 +558,11 @@ export default function GISMap() {
                                             background: item.color,
                                             borderRadius: item.shape === 'square' ? 2 : item.shape === 'diamond' ? 2 : '50%',
                                             transform: item.shape === 'diamond' ? 'rotate(45deg)' : 'none',
-                                            boxShadow: `0 0 6px ${item.color}66`,
+                                            boxShadow: `0 0 4px ${item.color}66`,
                                             flexShrink: 0
                                         }}></div>
                                     )}
-                                    <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{item.label}</span>
+                                    <span style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 500 }}>{item.label}</span>
                                 </div>
                             ))}
                         </div>
@@ -543,42 +573,42 @@ export default function GISMap() {
                             onClick={() => setShowLegend(true)}
                             style={{
                                 position: 'absolute', bottom: 32, left: 16, zIndex: 1000,
-                                padding: '8px 12px', fontSize: 11, fontWeight: 600,
-                                background: 'rgba(20,22,30,0.9)', color: '#ccc',
-                                border: '1px solid var(--border-subtle)', borderRadius: 6,
-                                cursor: 'pointer', backdropFilter: 'blur(10px)'
+                                padding: '8px 14px', fontSize: 12, fontWeight: 600,
+                                background: 'rgba(255,255,255,0.96)', color: 'var(--primary-dark)',
+                                border: '1px solid var(--border-subtle)', borderRadius: 8,
+                                cursor: 'pointer', backdropFilter: 'blur(10px)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
                             }}
                         >
-                            <Layers size={14} style={{ marginRight: 4 }} /> Legend
+                            <Layers size={14} style={{ marginRight: 6 }} /> Show Legend
                         </button>
                     )}
                 </div>
 
                 {/* ─── Sidebar ─── */}
                 <div style={{ width: 340, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden' }}>
-                    <div className="panel" style={{ flex: 1, marginBottom: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <div className="enterprise-card" style={{ flex: 1, marginBottom: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 }}>
 
                         {/* District Scope */}
-                        <div className="panel-header"><span className="panel-title">District Scope</span></div>
-                        <div className="panel-body" style={{ paddingBottom: 12 }}>
-                            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', marginBottom: 4 }}>{districtInfo?.name}</div>
-                            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>TN Authorized Geo-Boundary</div>
-                            <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-                                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                                    Verified DB: <strong style={{ color: 'var(--accent)' }}>{allDistrictLocations.length}</strong>
+                        <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--primary-light)' }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary-dark)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 2 }}>District Boundary Scope</div>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary-dark)' }}>{districtInfo?.name}</div>
+                            <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+                                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                                    Verified DB: <strong style={{ color: 'var(--primary-dark)' }}>{allDistrictLocations.length}</strong>
                                 </div>
-                                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                                    Plotted: <strong style={{ color: '#22c55e' }}>{plottedLocations.length}</strong>
+                                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                                    Plotted: <strong style={{ color: 'var(--status-green)' }}>{plottedLocations.length}</strong>
                                 </div>
                             </div>
                         </div>
 
                         {/* Search */}
-                        <div style={{ padding: '8px 16px', borderTop: '1px solid var(--border-subtle)' }}>
+                        <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)' }}>
                             <div style={{
                                 display: 'flex', alignItems: 'center', gap: 8,
-                                background: 'var(--surface-input)', border: '1px solid var(--border-subtle)',
-                                borderRadius: 6, padding: '6px 10px'
+                                background: '#F8FAFC', border: '1px solid var(--border-subtle)',
+                                borderRadius: 8, padding: '8px 12px'
                             }}>
                                 <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                                 <input
@@ -602,17 +632,16 @@ export default function GISMap() {
 
                         {/* Filters */}
                         <div
-                            className="panel-header"
-                            style={{ borderTop: '1px solid var(--border-subtle)', cursor: 'pointer', userSelect: 'none' }}
+                            style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer', userSelect: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}
                             onClick={() => toggleSection('filters')}
                         >
-                            <span className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                {sidebarSection.filters ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                                Map Filters
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {sidebarSection.filters ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                Spatial Map Filters
                             </span>
                         </div>
                         {sidebarSection.filters && (
-                            <div className="panel-body" style={{ paddingTop: 4, paddingBottom: 8 }}>
+                            <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                     {filterDefs.map(f => (
                                         <label key={f.key} style={{
@@ -638,17 +667,16 @@ export default function GISMap() {
 
                         {/* Plotted Sites */}
                         <div
-                            className="panel-header"
-                            style={{ borderTop: '1px solid var(--border-subtle)', cursor: 'pointer', userSelect: 'none' }}
+                            style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer', userSelect: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}
                             onClick={() => toggleSection('plotted')}
                         >
-                            <span className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                {sidebarSection.plotted ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {sidebarSection.plotted ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                 Plotted Sites ({filteredLocations.length})
                             </span>
                         </div>
                         {sidebarSection.plotted && (
-                            <div className="panel-body" style={{ flex: 1, overflowY: 'auto', padding: 0 }}>
+                            <div style={{ flex: 1, overflowY: 'auto', padding: 0 }}>
                                 {filteredLocations.length === 0 ? (
                                     <div style={{ padding: 16, fontSize: 12, color: 'var(--text-muted)' }}>
                                         {loading ? 'Querying PostgreSQL coordinates...' : (searchQuery ? 'No sites match your search.' : 'No coordinates available for this filter.')}
@@ -660,30 +688,30 @@ export default function GISMap() {
                                             style={{
                                                 padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)',
                                                 display: 'flex', gap: 10, cursor: 'pointer',
-                                                background: selectedLocation === loc.id ? 'rgba(200,149,108,0.08)' : 'transparent',
+                                                background: selectedLocation === loc.id ? 'var(--primary-light)' : 'transparent',
                                                 transition: 'background 0.15s ease'
                                             }}
                                             onClick={() => setSelectedLocation(loc.id === selectedLocation ? null : loc.id)}
-                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(200,149,108,0.06)'}
-                                            onMouseLeave={e => e.currentTarget.style.background = selectedLocation === loc.id ? 'rgba(200,149,108,0.08)' : 'transparent'}
+                                            onMouseEnter={e => { if (selectedLocation !== loc.id) e.currentTarget.style.background = '#F8FAFC'; }}
+                                            onMouseLeave={e => { if (selectedLocation !== loc.id) e.currentTarget.style.background = 'transparent'; }}
                                         >
                                             <div style={{
                                                 width: 10, height: 10, borderRadius: '50%', flexShrink: 0, marginTop: 4,
-                                                background: RISK_COLORS[loc.riskLevel] || '#c8956c',
-                                                boxShadow: `0 0 6px ${RISK_COLORS[loc.riskLevel] || '#c8956c'}44`
+                                                background: RISK_COLORS[loc.riskLevel] || '#10b981',
+                                                boxShadow: `0 0 4px ${RISK_COLORS[loc.riskLevel] || '#10b981'}44`
                                             }}></div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{loc.villageName}</div>
                                                 <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                                     <span>{loc.taluk} Taluk</span>
-                                                    <span style={{ color: RISK_COLORS[loc.riskLevel] }}>{loc.riskLevel}</span>
+                                                    <span style={{ color: RISK_COLORS[loc.riskLevel], fontWeight: 600 }}>{loc.riskLevel}</span>
                                                     <span>{loc.compliance || 0}%</span>
                                                 </div>
                                             </div>
                                             {(loc.openViolations || 0) > 0 && (
                                                 <div style={{
                                                     fontSize: 10, fontWeight: 700, color: '#ef4444',
-                                                    background: 'rgba(239,68,68,0.1)', padding: '2px 6px',
+                                                    background: '#FEF2F2', padding: '2px 6px',
                                                     borderRadius: 4, alignSelf: 'center', whiteSpace: 'nowrap'
                                                 }}>
                                                     {loc.openViolations}V
@@ -697,17 +725,16 @@ export default function GISMap() {
 
                         {/* Pending Coordinates */}
                         <div
-                            className="panel-header"
-                            style={{ borderTop: '1px solid var(--border-subtle)', cursor: 'pointer', userSelect: 'none' }}
+                            style={{ padding: '10px 16px', borderTop: '1px solid var(--border-subtle)', cursor: 'pointer', userSelect: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC' }}
                             onClick={() => toggleSection('pending')}
                         >
-                            <span className="panel-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                {sidebarSection.pending ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {sidebarSection.pending ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                 Pending Coordinates ({pendingLocations.length})
                             </span>
                         </div>
                         {sidebarSection.pending && (
-                            <div className="panel-body" style={{ overflowY: 'auto', padding: 0, maxHeight: 200 }}>
+                            <div style={{ overflowY: 'auto', padding: 0, maxHeight: 200 }}>
                                 {pendingLocations.length === 0 ? (
                                     <div style={{ padding: 16, fontSize: 12, color: 'var(--text-muted)' }}>All records spatially mapped in database.</div>
                                 ) : (
@@ -721,8 +748,8 @@ export default function GISMap() {
                                             </div>
                                             <div style={{
                                                 fontSize: 9, fontWeight: 700, color: '#f59e0b',
-                                                background: 'rgba(245,158,11,0.1)', padding: '2px 6px',
-                                                borderRadius: 3, alignSelf: 'center', whiteSpace: 'nowrap',
+                                                background: '#FFFBEB', padding: '2px 6px',
+                                                borderRadius: 4, alignSelf: 'center', whiteSpace: 'nowrap',
                                                 textTransform: 'uppercase'
                                             }}>
                                                 Pending

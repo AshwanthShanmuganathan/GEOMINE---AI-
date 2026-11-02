@@ -1,11 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { 
+    LayoutDashboard, MapPin, CheckCircle2, AlertTriangle, ShieldAlert, 
+    TrendingUp, ExternalLink, RefreshCw, AlertCircle, Eye, ArrowUpRight 
+} from 'lucide-react';
 import api from '../services/api';
 import { chartData } from '../data/mockData';
+import { StatusBadge, RiskBadge } from '../components/Shared';
 
-export default function Dashboard({ district }) {
+export default function Dashboard({ district, mineId }) {
     const navigate = useNavigate();
     const [rawMines, setRawMines] = useState([]);
     const [rawViolations, setRawViolations] = useState([]);
@@ -72,112 +76,192 @@ export default function Dashboard({ district }) {
 
     return (
         <div>
-            <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                        <h1>{district ? `${district.toUpperCase()} | ` : ''}Governance Dashboard</h1>
-                        <p className="subtitle">Real-time compliance, safety and risk status across monitored regional mines.</p>
+            {/* Top Banner with Clean Mine Landscape */}
+            <div className="page-header-banner">
+                <div className="banner-left">
+                    <div className="banner-icon-box">
+                        <LayoutDashboard size={26} />
                     </div>
-                    {loading && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--accent)' }}>
-                            <RefreshCw size={14} className="spin" /> Syncing Live DB...
-                        </div>
-                    )}
+                    <div className="banner-title-area">
+                        <h1>{district ? `${district} | ` : ''}Governance Dashboard</h1>
+                        <p>Real-time statutory compliance, environmental telemetry, and safety risks across regional mines.</p>
+                    </div>
+                </div>
+
+                <div className="banner-photo-area">
+                    <img 
+                        src="/mine2.jpg" 
+                        alt="Mining Excavation Overview" 
+                        className="banner-mine-img"
+                        onError={e => { e.currentTarget.src = '/tn-map.jpg'; }}
+                    />
+                    <div className="banner-photo-overlay" />
                 </div>
             </div>
 
             {error && (
                 <div style={{
-                    padding: '12px 16px',
+                    padding: '12px 18px',
                     marginBottom: 20,
-                    background: 'rgba(212, 80, 80, 0.12)',
-                    border: '1px solid rgba(212, 80, 80, 0.35)',
-                    borderRadius: 6,
+                    background: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    borderRadius: 8,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#ff6b6b' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#B91C1C' }}>
                         <AlertCircle size={18} />
-                        <span style={{ fontSize: 13, fontWeight: 500 }}>{error}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{error}</span>
                     </div>
-                    <button 
-                        className="btn btn-sm" 
-                        onClick={loadDashboardData}
-                        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-                    >
+                    <button className="btn-secondary" onClick={loadDashboardData} style={{ padding: '6px 12px', fontSize: 12 }}>
                         Retry Connection
                     </button>
                 </div>
             )}
 
-            {/* KPI Strip - compact, unified */}
-            <div className="kpi-strip">
-                <div className="kpi-item">
-                    <span className="kpi-item-label">Regional Mines</span>
-                    <span className="kpi-item-value">{mines.length}</span>
+            {/* KPI 4-Card Grid */}
+            <div className="kpi-cards-grid">
+                <div className="kpi-stat-card total" onClick={() => navigate('/tamil-nadu-mines')} style={{ cursor: 'pointer' }}>
+                    <div className="kpi-content-left">
+                        <div className="kpi-icon-circle total">
+                            <MapPin size={22} />
+                        </div>
+                        <div className="kpi-info-text">
+                            <span className="kpi-label-text">Regional Mines</span>
+                            <span className="kpi-value-num">{mines.length}</span>
+                        </div>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#0F766E' }}>{district || 'State'}</span>
                 </div>
-                <div className="kpi-item">
-                    <span className="kpi-item-label">Active Operations</span>
-                    <span className="kpi-item-value" style={{ color: 'var(--risk-low)' }}>{activeMines}</span>
+
+                <div className="kpi-stat-card compliant">
+                    <div className="kpi-content-left">
+                        <div className="kpi-icon-circle compliant">
+                            <CheckCircle2 size={22} />
+                        </div>
+                        <div className="kpi-info-text">
+                            <span className="kpi-label-text">Active Operations</span>
+                            <span className="kpi-value-num">{activeMines}</span>
+                        </div>
+                    </div>
+                    <span className="kpi-trend-pill compliant">
+                        {mines.length ? Math.round((activeMines / mines.length) * 100) : 100}% Active
+                    </span>
                 </div>
-                <div className="kpi-item">
-                    <span className="kpi-item-label">Avg Compliance</span>
-                    <span className="kpi-item-value" style={{ color: avgCompliance >= 80 ? 'var(--risk-low)' : 'var(--risk-medium)' }}>{avgCompliance}%</span>
+
+                <div className="kpi-stat-card pending" onClick={() => navigate('/compliance')} style={{ cursor: 'pointer' }}>
+                    <div className="kpi-content-left">
+                        <div className="kpi-icon-circle pending">
+                            <TrendingUp size={22} />
+                        </div>
+                        <div className="kpi-info-text">
+                            <span className="kpi-label-text">Avg Compliance</span>
+                            <span className="kpi-value-num">{avgCompliance}%</span>
+                        </div>
+                    </div>
+                    <span className="kpi-trend-pill pending">
+                        {avgCompliance >= 80 ? 'Target Met' : 'Needs Review'}
+                    </span>
                 </div>
-                <div className="kpi-item">
-                    <span className="kpi-item-label">High-Risk Watchlist</span>
-                    <span className="kpi-item-value" style={{ color: highRiskMines > 0 ? 'var(--risk-high)' : 'var(--text-primary)' }}>{highRiskMines}</span>
-                </div>
-                <div className="kpi-item">
-                    <span className="kpi-item-label">Open Violations</span>
-                    <span className="kpi-item-value" style={{ color: 'var(--risk-medium)' }}>{openViolations}</span>
+
+                <div className="kpi-stat-card overdue" onClick={() => navigate('/violations')} style={{ cursor: 'pointer' }}>
+                    <div className="kpi-content-left">
+                        <div className="kpi-icon-circle overdue">
+                            <ShieldAlert size={22} />
+                        </div>
+                        <div className="kpi-info-text">
+                            <span className="kpi-label-text">High-Risk Watchlist</span>
+                            <span className="kpi-value-num">{highRiskMines}</span>
+                        </div>
+                    </div>
+                    <span className="kpi-trend-pill overdue">
+                        {openViolations} Open Citations
+                    </span>
                 </div>
             </div>
 
-            <div className="grid-2">
-                <div className="panel">
-                    <div className="panel-header">
-                        <span className="panel-title">Attention Required</span>
-                        <button className="panel-action" onClick={() => navigate('/violations')}>View all &rarr;</button>
+            {/* Split Grid: Attention Required & Regional Risk Trend */}
+            <div className="grid-2" style={{ marginBottom: 24 }}>
+                {/* Attention Required Card */}
+                <div className="enterprise-card" style={{ marginBottom: 0 }}>
+                    <div className="enterprise-card-header">
+                        <span className="enterprise-card-title">Priority Attention Required</span>
+                        <button className="btn-secondary" style={{ padding: '4px 10px', fontSize: 11 }} onClick={() => navigate('/violations')}>
+                            View All <ArrowUpRight size={12} />
+                        </button>
                     </div>
-                    <div style={{ padding: 0 }}>
-                        <ul className="attention-list">
-                            {attentionItems.length === 0 && (
-                                <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)' }}>
-                                    {loading ? 'Checking statutory records...' : 'No critical alerts for this district.'}
-                                </div>
-                            )}
-                            {attentionItems.map((item, i) => (
-                                <li key={i} className="attention-item" onClick={() => navigate(item.link)}>
-                                    <div className={`attention-severity ${item.severity}`} />
-                                    <div className="attention-body">
-                                        <div className="attention-mine">{item.mine}</div>
-                                        <div className="attention-desc">{item.desc}</div>
+                    <div style={{ padding: '6px 0' }}>
+                        {attentionItems.length === 0 ? (
+                            <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                {loading ? 'Syncing statutory records...' : 'No critical compliance alerts for this district.'}
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                {attentionItems.map((item, i) => (
+                                    <div 
+                                        key={i} 
+                                        onClick={() => navigate(item.link)}
+                                        style={{
+                                            padding: '12px 20px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            borderBottom: i === attentionItems.length - 1 ? 'none' : '1px solid var(--color-border-subtle)',
+                                            cursor: 'pointer',
+                                            transition: 'background 120ms ease'
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            <div style={{ 
+                                                width: 8, 
+                                                height: 8, 
+                                                borderRadius: '50%', 
+                                                background: item.severity === 'high' ? '#EF4444' : '#F59E0B' 
+                                            }} />
+                                            <div>
+                                                <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{item.mine}</div>
+                                                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{item.desc}</div>
+                                            </div>
+                                        </div>
+                                        <span className={`badge-status ${item.severity === 'high' ? 'overdue' : 'pending'}`}>
+                                            {item.severity.toUpperCase()}
+                                        </span>
                                     </div>
-                                    <span className={`attention-badge badge badge-${item.severity === 'high' ? 'high' : 'medium'}`}>
-                                        {item.severity.toUpperCase()}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <div className="panel">
-                    <div className="panel-header">
-                        <span className="panel-title">Regional Risk Trend</span>
+                {/* Regional Risk Trend Card with Recharts */}
+                <div className="enterprise-card" style={{ marginBottom: 0 }}>
+                    <div className="enterprise-card-header">
+                        <span className="enterprise-card-title">Regional Compliance & Risk Trend</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>Last 6 Months</span>
                     </div>
-                    <div className="panel-body">
-                        <div style={{ height: 220 }}>
+                    <div style={{ padding: '20px 24px' }}>
+                        <div style={{ height: 210 }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData.riskTrend}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                                    <XAxis dataKey="month" stroke="#636674" fontSize={11} tickLine={false} axisLine={false} />
-                                    <YAxis stroke="#636674" fontSize={11} tickLine={false} axisLine={false} />
-                                    <Tooltip contentStyle={{ background: '#1c1f28', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, fontSize: 12 }} />
-                                    <Area type="monotone" dataKey="compliance" stroke="#4caf78" fill="rgba(76,175,120,0.08)" strokeWidth={2} name="Compliance %" />
-                                    <Area type="monotone" dataKey="risk" stroke="#d45050" fill="rgba(212,80,80,0.08)" strokeWidth={2} name="Risk Score" />
+                                    <defs>
+                                        <linearGradient id="compGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.25}/>
+                                            <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                                        </linearGradient>
+                                        <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#EF4444" stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                                    <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
+                                    <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
+                                    <Tooltip contentStyle={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8, boxShadow: '0 4px 6px rgba(0,0,0,0.06)', fontSize: 12 }} />
+                                    <Area type="monotone" dataKey="compliance" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#compGrad)" name="Compliance %" />
+                                    <Area type="monotone" dataKey="risk" stroke="#EF4444" strokeWidth={2.5} fillOpacity={1} fill="url(#riskGrad)" name="Risk Score" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
@@ -185,50 +269,70 @@ export default function Dashboard({ district }) {
                 </div>
             </div>
 
-            <div className="panel">
-                <div className="panel-header">
-                    <span className="panel-title">District Mine Overview</span>
+            {/* Regional Mine Overview Table */}
+            <div className="enterprise-card">
+                <div className="enterprise-card-header">
+                    <span className="enterprise-card-title">Registered Mines & Quarries ({mines.length})</span>
+                    <button className="btn-secondary" onClick={() => navigate('/gis-map')} style={{ padding: '6px 12px', fontSize: 12 }}>
+                        View on GIS Map &rarr;
+                    </button>
                 </div>
-                <div style={{ padding: 0 }}>
+                <div className="table-responsive">
                     <table className="data-table">
                         <thead>
                             <tr>
-                                <th>Mine</th>
+                                <th>Quarry Name</th>
                                 <th>District</th>
-                                <th>Type</th>
+                                <th>Excavation Type</th>
                                 <th>Compliance</th>
-                                <th>Risk</th>
+                                <th>Risk Level</th>
                                 <th>Status</th>
                                 <th>Violations</th>
-                                <th>Last Inspection</th>
+                                <th>Last Audit</th>
+                                <th style={{ textAlign: 'right' }}>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {mines.length === 0 && (
                                 <tr>
-                                    <td colSpan={8} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>
-                                        {loading ? 'Loading verified mines from database...' : 'No mines registered for this district.'}
+                                    <td colSpan={9} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+                                        {loading ? 'Connecting to database...' : 'No mines found for this district.'}
                                     </td>
                                 </tr>
                             )}
                             {mines.map(m => (
-                                <tr key={m.id} onClick={() => navigate(`/mine/${m.id}`)}>
-                                    <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{m.name}</td>
-                                    <td>{m.district || m.district_id || m.location}</td>
-                                    <td>{m.type}</td>
+                                <tr key={m.id} onClick={() => navigate(`/mine/${m.id}`)} style={{ cursor: 'pointer' }}>
+                                    <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                        {m.name}
+                                    </td>
+                                    <td style={{ color: 'var(--text-secondary)' }}>
+                                        {m.district || m.district_id || m.location}
+                                    </td>
+                                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                                        {m.type}
+                                    </td>
                                     <td>
-                                        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 12, color: m.compliance >= 85 ? 'var(--risk-low)' : m.compliance >= 70 ? 'var(--risk-medium)' : 'var(--risk-high)' }}>
+                                        <span className="mono" style={{ fontWeight: 700, color: m.compliance >= 85 ? '#059669' : m.compliance >= 70 ? '#D97706' : '#DC2626' }}>
                                             {m.compliance}%
                                         </span>
                                     </td>
                                     <td>
-                                        <span className={`badge badge-${(m.riskLevel || 'medium').toLowerCase()}`}>{m.riskLevel}</span>
+                                        <RiskBadge level={m.riskLevel} />
                                     </td>
                                     <td>
-                                        <span className={`badge ${m.status === 'Active' ? 'badge-compliant' : 'badge-pending'}`}>{m.status.toUpperCase()}</span>
+                                        <StatusBadge status={m.status} />
                                     </td>
-                                    <td className="mono">{m.violations}</td>
-                                    <td className="mono">{m.lastInspection}</td>
+                                    <td className="mono" style={{ fontWeight: 600, color: m.violations > 0 ? '#DC2626' : 'var(--text-muted)' }}>
+                                        {m.violations}
+                                    </td>
+                                    <td className="mono" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                                        {m.lastInspection}
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-forest)' }}>
+                                            Inspect &rarr;
+                                        </span>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

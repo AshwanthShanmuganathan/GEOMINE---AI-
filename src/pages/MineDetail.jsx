@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { 
+    AlertCircle, RefreshCw, ArrowLeft, MapPin, Shield, 
+    AlertTriangle, CheckCircle2, Users, Activity, FileText, ArrowRight 
+} from 'lucide-react';
 import api from '../services/api';
 import { RiskGauge, RiskBar, StatusBadge, RiskBadge } from '../components/Shared';
 import EvidenceViewer from '../components/EvidenceViewer';
@@ -48,18 +51,23 @@ export default function MineDetail() {
     if (loading) {
         return (
             <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>
-                <RefreshCw size={24} className="spin" style={{ margin: '0 auto 16px auto', color: 'var(--accent)' }} />
-                <h3>Querying PostgreSQL for Site {id}...</h3>
+                <RefreshCw size={28} className="spin" style={{ margin: '0 auto 16px auto', color: 'var(--primary-dark)' }} />
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--primary-dark)' }}>Querying PostgreSQL for Site {id}...</h3>
             </div>
         );
     }
 
     if (error || !mine) {
         return (
-            <div style={{ padding: 40, color: 'var(--text-muted)' }}>
-                <h2>Location record not found in database.</h2>
-                <p style={{ marginTop: 8, color: '#ff6b6b' }}>{error || `No registered mining lease with ID ${id}`}</p>
-                <button className="btn" onClick={() => navigate(-1)} style={{ marginTop: 16 }}>Go Back</button>
+            <div style={{ padding: 40, textAlign: 'center' }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#FEF2F2', color: '#B91C1C', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto' }}>
+                    <AlertCircle size={24} />
+                </div>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>Location record not found in database.</h2>
+                <p style={{ marginTop: 8, color: '#B91C1C', fontSize: 13 }}>{error || `No registered mining lease with ID ${id}`}</p>
+                <button className="btn-primary" onClick={() => navigate(-1)} style={{ marginTop: 20 }}>
+                    <ArrowLeft size={16} /> Go Back
+                </button>
             </div>
         );
     }
@@ -84,46 +92,136 @@ export default function MineDetail() {
     return (
         <ErrorBoundary title="Mine Details Error">
             <div>
-                <div className="page-header" style={{ position: 'relative' }}>
-                    <button className="btn btn-sm" onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>← Back</button>
-                    <h1>{mine.name}</h1>
-                    <p className="subtitle">{safeData.location} | {safeData.type} | {mine.id}</p>
+                {/* Header Banner */}
+                <div className="page-header-banner">
+                    <div className="banner-left">
+                        <div className="banner-icon-box">
+                            <MapPin size={26} />
+                        </div>
+                        <div className="banner-title-area">
+                            <button 
+                                onClick={() => navigate(-1)} 
+                                style={{ 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    gap: 6, 
+                                    background: 'none', 
+                                    border: 'none', 
+                                    color: 'var(--primary-dark)', 
+                                    cursor: 'pointer', 
+                                    fontSize: 12, 
+                                    fontWeight: 700,
+                                    textTransform: 'uppercase', 
+                                    letterSpacing: 0.8, 
+                                    marginBottom: 6,
+                                    padding: 0
+                                }}
+                            >
+                                <ArrowLeft size={14} /> Back to Directory
+                            </button>
+                            <h1>{mine.name}</h1>
+                            <p>{safeData.location} District | {safeData.type} | Statutory Node {mine.id}</p>
+                        </div>
+                    </div>
+
+                    <div className="banner-photo-area">
+                        <img 
+                            src="/mine1.jpg" 
+                            alt={mine.name} 
+                            className="banner-mine-img"
+                            onError={e => { e.currentTarget.src = '/tn-map.jpg'; }}
+                        />
+                        <div className="banner-photo-overlay" />
+                    </div>
                 </div>
 
-                <div className="kpi-strip">
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">Compliance</span>
-                        <span className="kpi-item-value" style={{ color: safeData.compliance >= 85 ? 'var(--risk-low)' : safeData.compliance >= 70 ? 'var(--risk-medium)' : 'var(--risk-high)' }}>{safeData.compliance}%</span>
+                {/* KPI Cards */}
+                <div className="kpi-cards-grid">
+                    <div className="kpi-stat-card card-green">
+                        <div className="kpi-stat-top">
+                            <div className="kpi-icon-circle bg-green">
+                                <CheckCircle2 size={20} />
+                            </div>
+                            <div className="kpi-trend-pill trend-up">DGMS Verified</div>
+                        </div>
+                        <div className="kpi-label">Compliance Score</div>
+                        <div className="kpi-number">{safeData.compliance}%</div>
                     </div>
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">Risk Index</span>
-                        <span className="kpi-item-value" style={{ color: safeData.risk >= 80 ? 'var(--risk-high)' : safeData.risk >= 50 ? 'var(--risk-medium)' : 'var(--risk-low)' }}>{safeData.risk}</span>
+
+                    <div className="kpi-stat-card card-amber">
+                        <div className="kpi-stat-top">
+                            <div className="kpi-icon-circle bg-amber">
+                                <Activity size={20} />
+                            </div>
+                            <div className="kpi-trend-pill trend-up">Calculated</div>
+                        </div>
+                        <div className="kpi-label">AI Risk Index</div>
+                        <div className="kpi-number">{safeData.risk}<span style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-muted)' }}>/100</span></div>
                     </div>
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">Open Violations</span>
-                        <span className="kpi-item-value" style={{ color: safeData.violationsCount > 0 ? 'var(--risk-high)' : 'var(--risk-low)' }}>{safeData.violationsCount}</span>
+
+                    <div className="kpi-stat-card card-red">
+                        <div className="kpi-stat-top">
+                            <div className="kpi-icon-circle bg-red">
+                                <AlertTriangle size={20} />
+                            </div>
+                            <div className="kpi-trend-pill trend-neutral">Attention</div>
+                        </div>
+                        <div className="kpi-label">Open Violations</div>
+                        <div className="kpi-number">{safeData.violationsCount}</div>
                     </div>
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">Workforce</span>
-                        <span className="kpi-item-value">{safeData.workers}</span>
-                    </div>
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">Target Extraction</span>
-                        <span className="kpi-item-value" style={{ fontSize: 16 }}>{safeData.production}</span>
+
+                    <div className="kpi-stat-card card-cyan">
+                        <div className="kpi-stat-top">
+                            <div className="kpi-icon-circle bg-cyan">
+                                <Users size={20} />
+                            </div>
+                        </div>
+                        <div className="kpi-label">Active Workforce</div>
+                        <div className="kpi-number">{safeData.workers}</div>
                     </div>
                 </div>
 
-                <div className="grid-2">
-                    <div className="panel">
-                        <div className="panel-header"><span className="panel-title">Mine Operations Detail</span></div>
-                        <div className="panel-body">
-                            <div className="detail-field"><div className="detail-label">Location ID</div><div className="detail-value mono">{mine.id}</div></div>
-                            <div className="detail-field"><div className="detail-label">District Authority</div><div className="detail-value">{safeData.location}, {safeData.state}</div></div>
-                            <div className="detail-field"><div className="detail-label">Excavation Type</div><div className="detail-value">{safeData.type}</div></div>
-                            <div className="detail-field"><div className="detail-label">Operational Status</div><div className="detail-value"><span className={`badge ${safeData.status === 'Active' ? 'badge-compliant' : 'badge-pending'}`}>{safeData.status.toUpperCase()}</span></div></div>
-                            <div className="detail-field"><div className="detail-label">Supervising Officer</div><div className="detail-value mono">{safeData.officers}</div></div>
-                            <div className="detail-field"><div className="detail-label">Last Logged Inspection</div><div className="detail-value mono">{safeData.lastInspection}</div></div>
-                            <div className="detail-field"><div className="detail-label">Geographical Node</div><div className="detail-value mono">{safeData.lat != null ? `${safeData.lat.toFixed(4)}°N` : 'PENDING'}, {safeData.lng != null ? `${safeData.lng.toFixed(4)}°E` : 'PENDING'}</div></div>
+                {/* Grid: Mine Operations + Satellite Viewer */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 20, marginBottom: 24 }}>
+                    <div className="enterprise-card" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ paddingBottom: 14, borderBottom: '1px solid var(--border-subtle)', marginBottom: 16 }}>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary-dark)' }}>Mine Operations Profile</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>Statutory lease parameters registered in PostgreSQL</div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border-subtle)' }}>
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Location ID</span>
+                                <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary-dark)', background: '#F1F5F9', padding: '2px 8px', borderRadius: 4 }}>{mine.id}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border-subtle)' }}>
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>District Authority</span>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{safeData.location}, {safeData.state}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border-subtle)' }}>
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Excavation Type</span>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{safeData.type}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border-subtle)' }}>
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Operational Status</span>
+                                <span className={safeData.status === 'Active' ? 'badge-status-completed' : 'badge-status-pending'}>
+                                    ● {safeData.status.toUpperCase()}
+                                </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border-subtle)' }}>
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Supervising Officer</span>
+                                <span className="mono" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{safeData.officers}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 10, borderBottom: '1px solid var(--border-subtle)' }}>
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Last Logged Inspection</span>
+                                <span className="mono" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{safeData.lastInspection}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Geographical Node</span>
+                                <span className="mono" style={{ fontSize: 12, color: 'var(--primary-dark)', fontWeight: 600 }}>
+                                    {safeData.lat != null ? `${safeData.lat.toFixed(4)}°N` : 'PENDING'}, {safeData.lng != null ? `${safeData.lng.toFixed(4)}°E` : 'PENDING'}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -137,30 +235,39 @@ export default function MineDetail() {
 
                 {/* Violations at this mine */}
                 {mineViolations.length > 0 && (
-                    <div className="panel" style={{ marginTop: 24 }}>
-                        <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span className="panel-title">Open Violations ({mineViolations.length})</span>
-                            <button className="btn btn-sm" onClick={() => navigate('/violations')}>View All In Violations Module →</button>
+                    <div className="enterprise-card" style={{ padding: 0, marginBottom: 24 }}>
+                        <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary-dark)' }}>Open Violations ({mineViolations.length})</div>
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>Non-compliance notices pending field rectification</div>
+                            </div>
+                            <button className="btn-secondary" onClick={() => navigate('/violations')} style={{ fontSize: 12 }}>
+                                View All in Violations Module →
+                            </button>
                         </div>
-                        <div style={{ padding: 0 }}>
+                        <div style={{ overflowX: 'auto' }}>
                             <table className="data-table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th style={{ width: 140 }}>Notice ID</th>
                                         <th>Description</th>
-                                        <th>Severity</th>
-                                        <th>Status</th>
-                                        <th>Deadline</th>
+                                        <th style={{ width: 140 }}>Severity</th>
+                                        <th style={{ width: 140 }}>Status</th>
+                                        <th style={{ width: 140 }}>Deadline</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {mineViolations.map(v => (
                                         <tr key={v.id} onClick={() => navigate('/violations')} style={{ cursor: 'pointer' }}>
-                                            <td className="mono" style={{ color: 'var(--accent)' }}>{v.id}</td>
-                                            <td style={{ color: 'var(--text-primary)', maxWidth: 350 }}>{v.description}</td>
+                                            <td>
+                                                <span className="mono" style={{ fontSize: 12, fontWeight: 700, background: '#F1F5F9', padding: '3px 8px', borderRadius: 4, color: 'var(--primary-dark)' }}>
+                                                    {v.id}
+                                                </span>
+                                            </td>
+                                            <td style={{ color: 'var(--text-primary)', fontWeight: 600, maxWidth: 350 }}>{v.description}</td>
                                             <td><RiskBadge level={v.severity} /></td>
                                             <td><StatusBadge status={v.status} /></td>
-                                            <td className="mono" style={{ color: 'var(--text-secondary)' }}>{v.deadline || 'PENDING'}</td>
+                                            <td className="mono" style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{v.deadline || 'PENDING'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -171,19 +278,44 @@ export default function MineDetail() {
 
                 {/* Recent Inspections */}
                 {mineInspections.length > 0 && (
-                    <div className="panel" style={{ marginTop: 24 }}>
-                        <div className="panel-header"><span className="panel-title">Recent Inspections</span></div>
-                        <div style={{ padding: 0 }}>
+                    <div className="enterprise-card" style={{ padding: 0 }}>
+                        <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary-dark)' }}>Recent Field Inspections</div>
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>DGMS safety audits and checklist logs</div>
+                            </div>
+                        </div>
+                        <div style={{ overflowX: 'auto' }}>
                             <table className="data-table">
-                                <thead><tr><th>ID</th><th>Type</th><th>Date</th><th>Findings</th><th>Score</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: 140 }}>Report ID</th>
+                                        <th>Audit Type</th>
+                                        <th style={{ width: 140 }}>Date</th>
+                                        <th>Findings</th>
+                                        <th style={{ width: 120 }}>Score</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     {mineInspections.map(ins => (
                                         <tr key={ins.id}>
-                                            <td className="mono">{ins.id}</td>
-                                            <td>{ins.type}</td>
-                                            <td className="mono">{ins.date}</td>
-                                            <td className="mono">{ins.findings} ({ins.critical} critical)</td>
-                                            <td className="mono" style={{ fontWeight: 600, color: ins.score >= 85 ? 'var(--risk-low)' : ins.score >= 65 ? 'var(--risk-medium)' : 'var(--risk-high)' }}>{ins.score}</td>
+                                            <td>
+                                                <span className="mono" style={{ fontSize: 12, fontWeight: 700, background: '#F1F5F9', padding: '3px 8px', borderRadius: 4, color: 'var(--primary-dark)' }}>
+                                                    {ins.id}
+                                                </span>
+                                            </td>
+                                            <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{ins.type}</td>
+                                            <td className="mono" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{ins.date}</td>
+                                            <td style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{ins.findings} ({ins.critical} critical)</td>
+                                            <td>
+                                                <span style={{ 
+                                                    fontFamily: 'var(--font-mono)', 
+                                                    fontWeight: 700, 
+                                                    color: ins.score >= 85 ? 'var(--status-green)' : ins.score >= 65 ? 'var(--status-amber)' : 'var(--status-red)' 
+                                                }}>
+                                                    {ins.score}%
+                                                </span>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

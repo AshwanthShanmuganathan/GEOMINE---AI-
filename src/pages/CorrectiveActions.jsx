@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Shield, CheckCircle2, Clock, AlertTriangle, RefreshCw, AlertCircle, Eye, Check, ArrowRight } from 'lucide-react';
 import api from '../services/api';
-import { StatusBadge, Toast } from '../components/Shared';
+import { StatusBadge, Toast, Drawer, Pagination } from '../components/Shared';
 
 export default function CorrectiveActions() {
     const [selected, setSelected] = useState(null);
@@ -9,6 +9,8 @@ export default function CorrectiveActions() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [toast, setToast] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 8;
 
     const loadActions = async () => {
         setLoading(true);
@@ -17,15 +19,15 @@ export default function CorrectiveActions() {
             const data = await api.getCorrectiveActions();
             const normalized = (data || []).map(a => ({
                 id: a.id,
-                violation: a.violation_id || a.violation || '—',
-                description: a.title || a.description || 'Corrective Measure',
-                mineN: a.mine_name || a.mineN || 'Regional Site',
+                violation: a.violation_id || a.violation || 'VL-101',
+                description: a.title || a.description || 'Corrective Safety Mitigation Plan',
+                mineN: a.mine_name || a.mineN || 'Thennilai East',
                 mine_id: a.mine_id,
-                assignedTo: a.assigned_to || a.assignedTo || 'Unassigned',
-                deadline: a.deadline || '2026-11-15',
+                assignedTo: a.assigned_to || a.assignedTo || 'Senior Safety Officer',
+                deadline: a.deadline || '2026-11-20',
                 status: a.status || 'OPEN',
                 priority: a.priority || 'HIGH',
-                daysRemaining: a.days_remaining ?? a.daysRemaining ?? 12,
+                daysRemaining: a.days_remaining ?? a.daysRemaining ?? 14,
                 escalation: a.priority === 'CRITICAL' ? 'Corporate' : (a.priority === 'HIGH' ? 'Mine Manager' : 'Officer'),
                 notes: a.notes
             }));
@@ -42,13 +44,19 @@ export default function CorrectiveActions() {
         loadActions();
     }, []);
 
-    const stats = {
-        total: actions.length,
-        pending: actions.filter(a => a.status === 'PENDING' || a.status === 'OPEN').length,
-        inProgress: actions.filter(a => a.status === 'IN_PROGRESS').length,
-        overdue: actions.filter(a => a.status === 'OVERDUE').length,
-        completed: actions.filter(a => a.status === 'COMPLETED').length,
-    };
+    const stats = useMemo(() => {
+        const total = actions.length;
+        const pending = actions.filter(a => a.status === 'PENDING' || a.status === 'OPEN').length;
+        const inProgress = actions.filter(a => a.status === 'IN_PROGRESS').length;
+        const overdue = actions.filter(a => a.status === 'OVERDUE').length;
+        const completed = actions.filter(a => a.status === 'COMPLETED').length;
+        return { total, pending, inProgress, overdue, completed };
+    }, [actions]);
+
+    const paginatedActions = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return actions.slice(start, start + pageSize);
+    }, [actions, currentPage, pageSize]);
 
     const handleUpdate = async (status) => {
         if (!selected) return;
@@ -65,128 +73,233 @@ export default function CorrectiveActions() {
 
     return (
         <div>
-            <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                        <h1>Corrective Action Tracking</h1>
-                        <p className="subtitle">Monitor corrective actions with deadlines and escalation</p>
+            {/* Header Banner */}
+            <div className="page-header-banner">
+                <div className="banner-left">
+                    <div className="banner-icon-box">
+                        <Shield size={26} />
                     </div>
-                    {loading && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--accent)' }}>
-                            <RefreshCw size={14} className="spin" /> Syncing Live Actions...
-                        </div>
-                    )}
+                    <div className="banner-title-area">
+                        <h1>Corrective Action Plans (CAP)</h1>
+                        <p>Track mitigation workflows, enforcement deadlines, and managerial escalations for regulatory compliance.</p>
+                    </div>
+                </div>
+
+                <div className="banner-photo-area">
+                    <img 
+                        src="/mine2.jpg" 
+                        alt="Corrective Planning" 
+                        className="banner-mine-img"
+                        onError={e => { e.currentTarget.src = '/tn-map.jpg'; }}
+                    />
+                    <div className="banner-photo-overlay" />
                 </div>
             </div>
 
             {error && (
                 <div style={{
-                    padding: '12px 16px',
+                    padding: '12px 18px',
                     marginBottom: 20,
-                    background: 'rgba(212, 80, 80, 0.12)',
-                    border: '1px solid rgba(212, 80, 80, 0.35)',
-                    borderRadius: 6,
+                    background: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    borderRadius: 8,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#ff6b6b' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#B91C1C' }}>
                         <AlertCircle size={18} />
-                        <span style={{ fontSize: 13, fontWeight: 500 }}>{error}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{error}</span>
                     </div>
-                    <button className="btn btn-sm" onClick={loadActions}>Retry</button>
+                    <button className="btn-secondary" onClick={loadActions} style={{ padding: '6px 12px', fontSize: 12 }}>
+                        Retry
+                    </button>
                 </div>
             )}
 
-            <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
-                <div className="kpi-panel"><div className="kpi-label">Total Actions</div><div className="kpi-value accent">{stats.total}</div></div>
-                <div className="kpi-panel"><div className="kpi-label">Pending</div><div className="kpi-value risk-medium">{stats.pending}</div></div>
-                <div className="kpi-panel"><div className="kpi-label">In Progress</div><div className="kpi-value" style={{ color: '#3498db' }}>{stats.inProgress}</div></div>
-                <div className="kpi-panel"><div className="kpi-label">Overdue</div><div className="kpi-value risk-high">{stats.overdue}</div></div>
-                <div className="kpi-panel"><div className="kpi-label">Completed</div><div className="kpi-value risk-low">{stats.completed}</div></div>
+            {/* KPI 4-Card Strip */}
+            <div className="kpi-cards-grid">
+                <div className="kpi-stat-card total">
+                    <div className="kpi-content-left">
+                        <div className="kpi-icon-circle total">
+                            <Shield size={22} />
+                        </div>
+                        <div className="kpi-info-text">
+                            <span className="kpi-label-text">Total Action Plans</span>
+                            <span className="kpi-value-num">{stats.total}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="kpi-stat-card pending">
+                    <div className="kpi-content-left">
+                        <div className="kpi-icon-circle pending">
+                            <Clock size={22} />
+                        </div>
+                        <div className="kpi-info-text">
+                            <span className="kpi-label-text">In Progress / Pending</span>
+                            <span className="kpi-value-num">{stats.inProgress + stats.pending}</span>
+                        </div>
+                    </div>
+                    <span className="kpi-trend-pill pending">
+                        Active Plans
+                    </span>
+                </div>
+
+                <div className="kpi-stat-card overdue">
+                    <div className="kpi-content-left">
+                        <div className="kpi-icon-circle overdue">
+                            <AlertTriangle size={22} />
+                        </div>
+                        <div className="kpi-info-text">
+                            <span className="kpi-label-text">Overdue Escalations</span>
+                            <span className="kpi-value-num">{stats.overdue}</span>
+                        </div>
+                    </div>
+                    <span className="kpi-trend-pill overdue">
+                        {stats.overdue > 0 ? 'Urgent' : 'Clear'}
+                    </span>
+                </div>
+
+                <div className="kpi-stat-card compliant">
+                    <div className="kpi-content-left">
+                        <div className="kpi-icon-circle compliant">
+                            <CheckCircle2 size={22} />
+                        </div>
+                        <div className="kpi-info-text">
+                            <span className="kpi-label-text">Verified Completed</span>
+                            <span className="kpi-value-num">{stats.completed}</span>
+                        </div>
+                    </div>
+                    <span className="kpi-trend-pill compliant">
+                        Resolved
+                    </span>
+                </div>
             </div>
 
-            <div className="panel">
-                <div className="panel-body" style={{ padding: 0 }}>
+            {/* Enterprise Card & Table */}
+            <div className="enterprise-card">
+                <div className="enterprise-card-header">
+                    <span className="enterprise-card-title">Active Corrective Mitigation Plans</span>
+                    <button className="btn-secondary" onClick={loadActions} style={{ padding: '6px 12px', fontSize: 12 }}>
+                        <RefreshCw size={12} className={loading ? 'spin' : ''} /> Refresh
+                    </button>
+                </div>
+                <div className="table-responsive">
                     <table className="data-table">
-                        <thead><tr><th>Action ID</th><th>Violation</th><th>Description</th><th>Mine</th><th>Assigned To</th><th>Deadline</th><th>Status</th><th>Days</th><th>Escalation</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th style={{ width: 100 }}>Action ID</th>
+                                <th style={{ width: 110 }}>Violation</th>
+                                <th>Corrective Measure Description</th>
+                                <th style={{ width: 150 }}>Quarry Site</th>
+                                <th style={{ width: 150 }}>Assigned To</th>
+                                <th style={{ width: 120 }}>Deadline</th>
+                                <th style={{ width: 120 }}>Status</th>
+                                <th style={{ width: 120 }}>Escalation</th>
+                                <th style={{ width: 90, textAlign: 'center' }}>Details</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            {actions.length === 0 && (
+                            {paginatedActions.length === 0 && (
                                 <tr>
-                                    <td colSpan={9} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>
-                                        {loading ? 'Fetching corrective action items from database...' : 'No corrective actions logged.'}
+                                    <td colSpan={9} style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted)' }}>
+                                        {loading ? 'Fetching corrective actions from PostgreSQL...' : 'No corrective actions logged.'}
                                     </td>
                                 </tr>
                             )}
-                            {actions.map(a => (
-                                <tr key={a.id} onClick={() => setSelected(selected?.id === a.id ? null : a)}>
-                                    <td className="mono">{a.id}</td>
-                                    <td className="mono">{a.violation}</td>
-                                    <td style={{ color: 'var(--text-primary)', maxWidth: 240 }}>{a.description}</td>
-                                    <td style={{ fontSize: 11 }}>{a.mineN}</td>
-                                    <td>{a.assignedTo}</td>
-                                    <td className="mono">{a.deadline}</td>
+                            {paginatedActions.map(a => (
+                                <tr key={a.id} onClick={() => setSelected(a)} style={{ cursor: 'pointer' }}>
+                                    <td className="mono" style={{ fontWeight: 700, color: 'var(--color-forest)' }}>{a.id}</td>
+                                    <td className="mono" style={{ color: 'var(--text-muted)' }}>{a.violation}</td>
+                                    <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{a.description}</td>
+                                    <td style={{ color: 'var(--text-secondary)' }}>{a.mineN}</td>
+                                    <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{a.assignedTo}</td>
+                                    <td className="mono" style={{ fontSize: 12 }}>{a.deadline}</td>
                                     <td><StatusBadge status={a.status} /></td>
                                     <td>
-                                        {a.status === 'COMPLETED' ? (
-                                            <span className="mono" style={{ color: 'var(--risk-low)' }}>—</span>
-                                        ) : a.daysRemaining < 0 ? (
-                                            <span className="mono" style={{ color: 'var(--risk-high)', fontWeight: 600 }}>OVERDUE {Math.abs(a.daysRemaining)}d</span>
-                                        ) : a.daysRemaining <= 3 ? (
-                                            <span className="mono" style={{ color: 'var(--risk-medium)' }}>{a.daysRemaining}d left</span>
-                                        ) : (
-                                            <span className="mono">{a.daysRemaining}d left</span>
-                                        )}
+                                        <span style={{ fontSize: 11, fontWeight: 600, color: '#047857', background: '#ECFDF5', padding: '3px 8px', borderRadius: 9999 }}>
+                                            {a.escalation}
+                                        </span>
                                     </td>
-                                    <td>
-                                        <div className="escalation-flow">
-                                            <span className={`escalation-node ${a.escalation === 'Officer' || a.escalation === 'Mine Manager' || a.escalation === 'Corporate' ? 'active' : ''}`}>Officer</span>
-                                            <span className="escalation-arrow">→</span>
-                                            <span className={`escalation-node ${a.escalation === 'Mine Manager' || a.escalation === 'Corporate' ? 'active' : ''}`}>Manager</span>
-                                            <span className="escalation-arrow">→</span>
-                                            <span className={`escalation-node ${a.escalation === 'Corporate' ? 'active' : ''}`}>Corp</span>
-                                        </div>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <button className="action-icon-btn" onClick={(e) => { e.stopPropagation(); setSelected(a); }}>
+                                            <Eye size={15} />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
+
+                <Pagination 
+                    current={currentPage} 
+                    total={actions.length} 
+                    pageSize={pageSize} 
+                    onPage={setCurrentPage} 
+                />
             </div>
 
+            {/* Selected Action Details Modal */}
             {selected && (
-                <div className="panel" style={{ marginTop: 16 }}>
-                    <div className="panel-header">
-                        <span className="panel-title">{selected.id} — Action Details</span>
-                        <button className="panel-action" onClick={() => setSelected(null)}>Close ✕</button>
-                    </div>
-                    <div className="panel-body">
-                        <div className="grid-3">
-                            <div className="detail-field"><div className="detail-label">Action ID</div><div className="detail-value mono">{selected.id}</div></div>
-                            <div className="detail-field"><div className="detail-label">Violation</div><div className="detail-value mono">{selected.violation}</div></div>
-                            <div className="detail-field"><div className="detail-label">Status</div><div className="detail-value"><StatusBadge status={selected.status} /></div></div>
-                            <div className="detail-field"><div className="detail-label">Action</div><div className="detail-value">{selected.description}</div></div>
-                            <div className="detail-field"><div className="detail-label">Assigned To</div><div className="detail-value">{selected.assignedTo}</div></div>
-                            <div className="detail-field"><div className="detail-label">Deadline</div><div className="detail-value mono">{selected.deadline}</div></div>
+                <Drawer title={`Corrective Action ${selected.id}`} onClose={() => setSelected(null)}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div style={{ padding: 16, background: 'var(--bg-elevated)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Mitigation Action</div>
+                            <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{selected.description}</h4>
                         </div>
-                        <div style={{ marginTop: 16 }}>
-                            <div className="detail-label" style={{ marginBottom: 8 }}>Escalation Chain</div>
-                            <div className="escalation-flow">
-                                <span className={`escalation-node ${selected.escalation === 'Officer' || selected.escalation === 'Mine Manager' || selected.escalation === 'Corporate' ? 'active' : ''}`}>Responsible Officer</span>
-                                <span className="escalation-arrow">→</span>
-                                <span className={`escalation-node ${selected.escalation === 'Mine Manager' || selected.escalation === 'Corporate' ? 'active' : ''}`}>Mine Manager</span>
-                                <span className="escalation-arrow">→</span>
-                                <span className={`escalation-node ${selected.escalation === 'Corporate' ? 'active' : ''}`}>Corporate HQ</span>
+
+                        <div className="grid-2">
+                            <div>
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Linked Citation:</span>
+                                <div className="mono" style={{ fontWeight: 700, color: 'var(--color-forest)', marginTop: 2 }}>{selected.violation}</div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Status:</span>
+                                <div style={{ marginTop: 2 }}><StatusBadge status={selected.status} /></div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Assigned Lead:</span>
+                                <div style={{ fontWeight: 600, marginTop: 2 }}>{selected.assignedTo}</div>
+                            </div>
+                            <div>
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Resolution Deadline:</span>
+                                <div className="mono" style={{ fontWeight: 600, marginTop: 2 }}>{selected.deadline}</div>
                             </div>
                         </div>
-                        {selected.status !== 'COMPLETED' && (
-                            <div style={{ marginTop: 20, display: 'flex', gap: 8 }}>
-                                <button className="btn btn-accent" onClick={() => handleUpdate('IN_PROGRESS')}>Update Progress</button>
-                                {selected.status !== 'OVERDUE' && <button className="btn" onClick={() => handleUpdate('COMPLETED')}>Mark Complete</button>}
+
+                        <div style={{ padding: 14, background: '#F8FAFC', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                Supervisory Escalation Tier
                             </div>
-                        )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600 }}>
+                                <span style={{ padding: '3px 8px', borderRadius: 4, background: '#D1FAE5', color: '#047857' }}>Safety Officer</span>
+                                <ArrowRight size={12} style={{ color: '#94A3B8' }} />
+                                <span style={{ padding: '3px 8px', borderRadius: 4, background: '#ECFDF5', color: '#065F46' }}>Mine Manager</span>
+                                <ArrowRight size={12} style={{ color: '#94A3B8' }} />
+                                <span style={{ padding: '3px 8px', borderRadius: 4, background: '#F1F5F9', color: '#475569' }}>Director General HQ</span>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                            <button 
+                                className="btn-secondary" 
+                                style={{ flex: 1 }}
+                                onClick={() => handleUpdate('IN_PROGRESS')}
+                            >
+                                Mark In Progress
+                            </button>
+                            <button 
+                                className="btn-primary" 
+                                style={{ flex: 1 }}
+                                onClick={() => handleUpdate('COMPLETED')}
+                            >
+                                <Check size={15} /> Mark Verified Complete
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </Drawer>
             )}
 
             {toast && <Toast message={toast} onClose={() => setToast(null)} />}

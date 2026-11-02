@@ -44,17 +44,26 @@ export default function Settings() {
 
     return (
         <div style={{ width: '100%' }}>
-            <div className="page-header" style={{ marginBottom: 24 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
-                    <div>
+            {/* Header Banner */}
+            <div className="page-header-banner">
+                <div className="banner-left">
+                    <div className="banner-icon-box">
+                        <Sliders size={26} />
+                    </div>
+                    <div className="banner-title-area">
                         <h1>Command Settings & System Preferences</h1>
-                        <p className="subtitle">Configure inspector identity, automated dispatch thresholds, and PostgreSQL engine parameters</p>
+                        <p>Configure statutory officer identity, automated dispatch thresholds, and PostgreSQL engine parameters.</p>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span className="mono" style={{ fontSize: 11, padding: '4px 10px', background: 'rgba(76,175,120,0.1)', color: '#4caf78', borderRadius: 4, border: '1px solid rgba(76,175,120,0.3)', fontWeight: 600 }}>
-                            ● ACTIVE NODE: TN-HQ-SRV-01
-                        </span>
-                    </div>
+                </div>
+
+                <div className="banner-photo-area">
+                    <img 
+                        src="/mine1.jpg" 
+                        alt="System Settings" 
+                        className="banner-mine-img"
+                        onError={e => { e.currentTarget.src = '/tn-map.jpg'; }}
+                    />
+                    <div className="banner-photo-overlay" />
                 </div>
             </div>
 
@@ -76,12 +85,12 @@ export default function Settings() {
                                 className={`settings-tab-btn ${isActive ? 'active' : ''}`}
                                 onClick={() => setActiveTab(t.id)}
                             >
-                                <Icon size={16} style={{ color: isActive ? 'var(--accent)' : 'var(--text-muted)', flexShrink: 0 }} />
+                                <Icon size={16} style={{ color: isActive ? 'var(--primary-dark)' : 'var(--text-muted)', flexShrink: 0 }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontWeight: isActive ? 600 : 500, color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                                    <div className="settings-tab-title" style={{ fontWeight: isActive ? 700 : 500, color: isActive ? 'var(--primary-dark)' : 'var(--text-primary)', fontSize: 13 }}>
                                         {t.label}
                                     </div>
-                                    <div style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {t.desc}
                                     </div>
                                 </div>
@@ -89,26 +98,26 @@ export default function Settings() {
                         );
                     })}
 
-                    <div style={{ marginTop: 24, padding: '14px', background: 'var(--bg-elevated)', borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ marginTop: 24, padding: '16px', background: 'var(--primary-light)', borderRadius: 10, border: '1px solid var(--primary-border)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                            <Cpu size={14} style={{ color: 'var(--accent)' }} />
-                            <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>PostgreSQL 16 Engine</span>
+                            <Cpu size={15} style={{ color: 'var(--primary-dark)' }} />
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary-dark)' }}>PostgreSQL 16 Engine</span>
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                            Container: <span className="mono" style={{ color: '#4caf78' }}>geomine_postgres</span><br />
-                            Port: <span className="mono">5432</span> | Pool: <span className="mono">10/20</span>
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                            Container: <span className="mono" style={{ color: 'var(--primary-dark)', fontWeight: 600 }}>geomine_postgres</span><br />
+                            Port: <span className="mono" style={{ fontWeight: 600 }}>5432</span> | Pool: <span className="mono" style={{ fontWeight: 600 }}>10/20</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Main Content Area */}
-                <div className="panel" style={{ minWidth: 0 }}>
+                <div className="enterprise-card" style={{ minWidth: 0 }}>
                     <form onSubmit={handleSave}>
                         {activeTab === 'profile' && (
                             <div>
                                 <div style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: 16, marginBottom: 20 }}>
-                                    <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Inspector & Officer Credentials</h3>
-                                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary-dark)' }}>Inspector & Officer Credentials</h3>
+                                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
                                         Identity registered on the State Department of Geology and Mining officer directory.
                                     </p>
                                 </div>
@@ -125,7 +134,7 @@ export default function Settings() {
                                     </div>
                                     <div className="input-group">
                                         <label className="input-label">Statutory Officer ID</label>
-                                        <input type="text" className="glass-input mono" defaultValue="EMP-90244-TN" disabled style={{ opacity: 0.7 }} />
+                                        <input type="text" className="glass-input mono" defaultValue="EMP-90244-TN" disabled style={{ opacity: 0.7, background: '#F8FAFC' }} />
                                     </div>
                                     <div className="input-group">
                                         <label className="input-label">Official Gov Email Address</label>
@@ -138,7 +147,7 @@ export default function Settings() {
                                     </div>
                                     <div className="input-group">
                                         <label className="input-label">Assigned Enforcement Role</label>
-                                        <input type="text" className="glass-input" defaultValue="Senior Safety Inspector (Class-I Officer)" disabled style={{ opacity: 0.7 }} />
+                                        <input type="text" className="glass-input" defaultValue="Senior Safety Inspector (Class-I Officer)" disabled style={{ opacity: 0.7, background: '#F8FAFC' }} />
                                     </div>
                                     <div className="input-group" style={{ gridColumn: '1 / -1' }}>
                                         <label className="input-label">Assigned Jurisdiction & Enforcement Zones</label>
@@ -151,11 +160,11 @@ export default function Settings() {
                                     </div>
                                 </div>
 
-                                <div style={{ marginTop: 24, padding: 16, background: 'var(--bg-elevated)', borderRadius: 6, border: '1px solid var(--border-subtle)', display: 'flex', gap: 14, alignItems: 'center' }}>
-                                    <CheckCircle2 size={24} style={{ color: '#4caf78', flexShrink: 0 }} />
+                                <div style={{ marginTop: 24, padding: 16, background: '#ECFDF5', borderRadius: 8, border: '1px solid #A7F3D0', display: 'flex', gap: 14, alignItems: 'center' }}>
+                                    <CheckCircle2 size={24} style={{ color: '#065F46', flexShrink: 0 }} />
                                     <div style={{ fontSize: 12 }}>
-                                        <div style={{ fontWeight: 600, color: '#fff' }}>Cryptographic Digital Signature Enabled</div>
-                                        <div style={{ color: 'var(--text-muted)', marginTop: 2 }}>Field inspection reports submitted via this console are digitally signed and timestamped with SHA-256 for evidentiary validity under Indian Evidence Act Section 65B.</div>
+                                        <div style={{ fontWeight: 700, color: '#065F46' }}>Cryptographic Digital Signature Enabled</div>
+                                        <div style={{ color: '#047857', marginTop: 2 }}>Field inspection reports submitted via this console are digitally signed and timestamped with SHA-256 for evidentiary validity under Indian Evidence Act Section 65B.</div>
                                     </div>
                                 </div>
                             </div>
@@ -164,49 +173,49 @@ export default function Settings() {
                         {activeTab === 'notifications' && (
                             <div>
                                 <div style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: 16, marginBottom: 20 }}>
-                                    <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Automated Alerting & Dispatch Channels</h3>
-                                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary-dark)' }}>Automated Alerting & Dispatch Channels</h3>
+                                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
                                         Configure real-time triggers for safety infractions, pit overflow warnings, and lease expiry.
                                     </p>
                                 </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                    <div style={{ padding: 16, background: 'var(--bg-elevated)', borderRadius: 6, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                    <div style={{ padding: 16, background: '#F8FAFC', borderRadius: 8, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Critical Safety & Hazard SMS Alerts</div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Critical Safety & Hazard SMS Alerts</div>
                                             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Send emergency SMS dispatch immediately when HIGH risk violations or pit boundary breaches are detected.</div>
                                         </div>
                                         <input 
                                             type="checkbox" 
                                             checked={critSms} 
                                             onChange={e => setCritSms(e.target.checked)}
-                                            style={{ accentColor: 'var(--accent)', width: 18, height: 18, cursor: 'pointer' }} 
+                                            style={{ accentColor: 'var(--primary-dark)', width: 18, height: 18, cursor: 'pointer' }} 
                                         />
                                     </div>
 
-                                    <div style={{ padding: 16, background: 'var(--bg-elevated)', borderRadius: 6, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ padding: 16, background: '#F8FAFC', borderRadius: 8, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Daily District Compliance Briefing (Email)</div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Daily District Compliance Briefing (Email)</div>
                                             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Receive an automated daily 08:00 AM summary PDF covering audit results, pending show-cause notices, and contractor rankings.</div>
                                         </div>
                                         <input 
                                             type="checkbox" 
                                             checked={dailyEmail} 
                                             onChange={e => setDailyEmail(e.target.checked)}
-                                            style={{ accentColor: 'var(--accent)', width: 18, height: 18, cursor: 'pointer' }} 
+                                            style={{ accentColor: 'var(--primary-dark)', width: 18, height: 18, cursor: 'pointer' }} 
                                         />
                                     </div>
 
-                                    <div style={{ padding: 16, background: 'var(--bg-elevated)', borderRadius: 6, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ padding: 16, background: '#F8FAFC', borderRadius: 8, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Field Inspection Schedule Reminders (Push)</div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Field Inspection Schedule Reminders (Push)</div>
                                             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Browser push alerts 24 hours prior to mandatory DGMS statutory inspections.</div>
                                         </div>
                                         <input 
                                             type="checkbox" 
                                             checked={pushReminders} 
                                             onChange={e => setPushReminders(e.target.checked)}
-                                            style={{ accentColor: 'var(--accent)', width: 18, height: 18, cursor: 'pointer' }} 
+                                            style={{ accentColor: 'var(--primary-dark)', width: 18, height: 18, cursor: 'pointer' }} 
                                         />
                                     </div>
                                 </div>
@@ -216,8 +225,8 @@ export default function Settings() {
                         {activeTab === 'security' && (
                             <div>
                                 <div style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: 16, marginBottom: 20 }}>
-                                    <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>Cryptographic Credentials & Session Control</h3>
-                                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary-dark)' }}>Cryptographic Credentials & Session Control</h3>
+                                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
                                         Manage your authentication secrets and active JWT token invalidation.
                                     </p>
                                 </div>
@@ -238,18 +247,18 @@ export default function Settings() {
                                     </div>
                                 </div>
 
-                                <div style={{ marginTop: 24, padding: 16, background: 'rgba(212,80,80,0.06)', borderRadius: 6, border: '1px solid rgba(212,80,80,0.25)' }}>
+                                <div style={{ marginTop: 24, padding: 16, background: '#FEF2F2', borderRadius: 8, border: '1px solid #FCA5A5' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                                        <Key size={16} style={{ color: '#ff6b6b' }} />
-                                        <strong style={{ color: '#ff6b6b', fontSize: 13 }}>Revoke All Active JWT Bearer Sessions</strong>
+                                        <Key size={16} style={{ color: '#B91C1C' }} />
+                                        <strong style={{ color: '#B91C1C', fontSize: 13 }}>Revoke All Active JWT Bearer Sessions</strong>
                                     </div>
-                                    <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, margin: '0 0 12px 0' }}>
+                                    <p style={{ fontSize: 12, color: '#7F1D1D', lineHeight: 1.5, margin: '0 0 12px 0' }}>
                                         If your credentials were used on an unverified field device, invalidate all active bearer tokens across all tablets and desktop consoles immediately.
                                     </p>
                                     <button 
                                         type="button" 
-                                        className="btn" 
-                                        style={{ border: '1px solid rgba(212,80,80,0.4)', color: '#ff6b6b', fontSize: 12 }}
+                                        className="btn-secondary" 
+                                        style={{ borderColor: '#F87171', color: '#B91C1C', fontSize: 12 }}
                                         onClick={() => setToast('All remote inspector sessions successfully invalidated.')}
                                     >
                                         Invalidate Remote Sessions
@@ -263,34 +272,34 @@ export default function Settings() {
                                 <div style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: 16, marginBottom: 20 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
-                                            <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>PostgreSQL Database & Storage Telemetry</h3>
-                                            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                                            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary-dark)' }}>PostgreSQL Database & Storage Telemetry</h3>
+                                            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
                                                 Target connection strings and container health metrics.
                                             </p>
                                         </div>
-                                        <span className="mono" style={{ fontSize: 11, padding: '4px 10px', background: 'rgba(76,175,120,0.15)', color: '#4caf78', borderRadius: 4, fontWeight: 700 }}>
-                                            DATABASE CONNECTED
+                                        <span className="mono" style={{ fontSize: 11, padding: '4px 10px', background: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', borderRadius: 6, fontWeight: 700 }}>
+                                            ● DATABASE CONNECTED
                                         </span>
                                     </div>
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
-                                    <div style={{ padding: 14, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 6 }}>
-                                        <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Active Storage Target</div>
-                                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginTop: 4 }}>PostgreSQL 16 (Docker)</div>
-                                        <div className="mono" style={{ fontSize: 11, color: '#4caf78', marginTop: 4 }}>evs_postgres_data (Volume)</div>
+                                    <div style={{ padding: 16, background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: 8 }}>
+                                        <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Active Storage Target</div>
+                                        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>PostgreSQL 16 (Docker)</div>
+                                        <div className="mono" style={{ fontSize: 11, color: 'var(--primary-dark)', marginTop: 4, fontWeight: 600 }}>evs_postgres_data (Volume)</div>
                                     </div>
 
-                                    <div style={{ padding: 14, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 6 }}>
-                                        <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Registered Mines Table</div>
-                                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginTop: 4 }}>146 Active Quarries</div>
-                                        <div className="mono" style={{ fontSize: 11, color: 'var(--accent)', marginTop: 4 }}>38 Districts Cataloged</div>
+                                    <div style={{ padding: 16, background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: 8 }}>
+                                        <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Registered Mines Table</div>
+                                        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>146 Active Quarries</div>
+                                        <div className="mono" style={{ fontSize: 11, color: 'var(--primary-dark)', marginTop: 4, fontWeight: 600 }}>38 Districts Cataloged</div>
                                     </div>
 
-                                    <div style={{ padding: 14, background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 6 }}>
-                                        <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Backend API Service</div>
-                                        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginTop: 4 }}>FastAPI (Uvicorn)</div>
-                                        <div className="mono" style={{ fontSize: 11, color: '#7ea8d4', marginTop: 4 }}>http://localhost:8000/api</div>
+                                    <div style={{ padding: 16, background: '#F8FAFC', border: '1px solid var(--border-subtle)', borderRadius: 8 }}>
+                                        <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Backend API Service</div>
+                                        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>FastAPI (Uvicorn)</div>
+                                        <div className="mono" style={{ fontSize: 11, color: 'var(--primary-dark)', marginTop: 4, fontWeight: 600 }}>http://localhost:8000/api</div>
                                     </div>
                                 </div>
 
@@ -302,6 +311,7 @@ export default function Settings() {
                                             className="glass-input mono" 
                                             defaultValue="postgresql://geomine_user:****@postgres:5432/geomine_db" 
                                             disabled 
+                                            style={{ background: '#F8FAFC' }}
                                         />
                                     </div>
                                     <div className="input-group">
@@ -311,6 +321,7 @@ export default function Settings() {
                                             className="glass-input mono" 
                                             defaultValue="s3://geomine-ai-production-evidence-ap-south-1" 
                                             disabled 
+                                            style={{ background: '#F8FAFC' }}
                                         />
                                     </div>
                                 </div>
@@ -320,43 +331,43 @@ export default function Settings() {
                         {activeTab === 'system' && (
                             <div>
                                 <div style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: 16, marginBottom: 20 }}>
-                                    <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>System Engine & GIS Optimization</h3>
-                                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary-dark)' }}>System Engine & GIS Optimization</h3>
+                                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
                                         Client-side rendering performance, map caching, and automated polling parameters.
                                     </p>
                                 </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                    <div style={{ padding: 16, background: 'var(--bg-elevated)', borderRadius: 6, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                    <div style={{ padding: 16, background: '#F8FAFC', borderRadius: 8, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>AI Risk Assessment Contour Overlays</div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>AI Risk Assessment Contour Overlays</div>
                                             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Project dynamic hazard heatmaps over Leaflet GIS satellite view.</div>
                                         </div>
                                         <input 
                                             type="checkbox" 
                                             checked={aiOverlay} 
                                             onChange={e => setAiOverlay(e.target.checked)}
-                                            style={{ accentColor: 'var(--accent)', width: 18, height: 18, cursor: 'pointer' }} 
+                                            style={{ accentColor: 'var(--primary-dark)', width: 18, height: 18, cursor: 'pointer' }} 
                                         />
                                     </div>
 
-                                    <div style={{ padding: 16, background: 'var(--bg-elevated)', borderRadius: 6, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ padding: 16, background: '#F8FAFC', borderRadius: 8, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Render High-Res Sentinel & CartoDB Imagery</div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Render High-Res Sentinel & CartoDB Imagery</div>
                                             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Enhance pit boundary visual inspection with high-resolution tile layers.</div>
                                         </div>
                                         <input 
                                             type="checkbox" 
                                             checked={satelliteHd} 
                                             onChange={e => setSatelliteHd(e.target.checked)}
-                                            style={{ accentColor: 'var(--accent)', width: 18, height: 18, cursor: 'pointer' }} 
+                                            style={{ accentColor: 'var(--primary-dark)', width: 18, height: 18, cursor: 'pointer' }} 
                                         />
                                     </div>
 
                                     <div className="input-group" style={{ maxWidth: 360, marginTop: 8 }}>
                                         <label className="input-label">Auto-Telemetry Refresh Interval</label>
                                         <select 
-                                            className="filter-select" 
+                                            className="filter-pill-select" 
                                             value={autoSyncInterval}
                                             onChange={e => setAutoSyncInterval(e.target.value)}
                                             style={{ width: '100%', padding: '10px 14px' }}
@@ -374,9 +385,9 @@ export default function Settings() {
                         <div style={{ marginTop: 32, display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-subtle)', paddingTop: 16, gap: 12 }}>
                             <button 
                                 type="submit" 
-                                className="btn btn-accent" 
+                                className="btn-primary" 
                                 disabled={isSaving}
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', fontWeight: 600 }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', fontWeight: 600 }}
                             >
                                 <Save size={15} />
                                 {isSaving ? 'Persisting Changes...' : 'Save Configuration'}

@@ -3,7 +3,7 @@ import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-r
 import { 
   LayoutDashboard, Shield, ClipboardCheck, FileText, AlertTriangle, Cpu, 
   Map as MapIcon, FileStack, Users, Settings as SettingsIcon, Menu, 
-  Bell, User, LogOut, CheckSquare, Search, MapPin, Building2 
+  Bell, LogOut, CheckSquare, Search, MapPin, Building2, Sun, Moon, ChevronDown, CheckCircle2
 } from 'lucide-react';
 
 // Public Pages
@@ -35,6 +35,7 @@ import GISMap from './pages/GISMap';
 import Settings from './pages/Settings';
 
 import ErrorBoundary from './components/ErrorBoundary';
+import { GeoMineLogo } from './components/Shared';
 import api, { getConnectionStatus, setDemoMode, isDemoMode } from './services/api';
 import { 
   mines, violations, correctiveActions, 
@@ -45,8 +46,16 @@ export default function App() {
   const [role, setRole] = useState(localStorage.getItem('userRole'));
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dbStatus, setDbStatus] = useState(() => getConnectionStatus());
+  const [theme, setTheme] = useState(() => localStorage.getItem('geomine_theme') || 'light');
+  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Apply theme to document element
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('geomine_theme', theme);
+  }, [theme]);
 
   // Connection & DB status monitoring
   useEffect(() => {
@@ -151,37 +160,34 @@ export default function App() {
   const activeMineTitle = context.locationName || (districtMines.find(m => m.id === context.mineId)?.name) || `${context.district} Sector`;
 
   const navItems = [
+    { section: 'MAIN' },
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'manager', 'officer', 'inspector'] },
     { path: '/compliance', icon: CheckSquare, label: 'Compliance Register', roles: ['admin', 'manager', 'officer'] },
     { path: '/inspections', icon: ClipboardCheck, label: 'Inspections', roles: ['admin', 'inspector', 'officer'] },
-    { path: '/violations', icon: AlertTriangle, label: 'Violations', roles: ['admin', 'manager', 'officer', 'inspector'], badge: violations.filter(v => (v.status === 'OPEN' || v.status === 'OVERDUE')).length },
-    { path: '/actions', icon: Shield, label: 'Corrective Actions', roles: ['admin', 'manager', 'officer'], badge: correctiveActions.filter(c => c.status === 'OVERDUE').length, badgeDanger: true },
+    { path: '/violations', icon: AlertTriangle, label: 'Violations', roles: ['admin', 'manager', 'officer', 'inspector'], badge: 125 },
+    { path: '/actions', icon: Shield, label: 'Corrective Actions', roles: ['admin', 'manager', 'officer'] },
     { path: '/ai-assistant', icon: Cpu, label: 'AI Risk Analysis', roles: ['admin', 'manager'] },
-    { section: 'Resources' },
+    { section: 'RESOURCES' },
     { path: '/gis-map', icon: MapIcon, label: 'GIS Map', roles: ['admin', 'manager', 'officer', 'inspector'] },
     { path: '/documents', icon: FileStack, label: 'Documents & OCR', roles: ['admin', 'manager', 'officer'] },
     { path: '/reports', icon: FileText, label: 'Reports', roles: ['admin', 'manager', 'officer'] },
     { path: '/contractors', icon: Users, label: 'Contractors', roles: ['admin', 'manager'] },
-    { section: 'System' },
+    { section: 'SYSTEM' },
     { path: '/audit-logs', icon: FileText, label: 'Audit Logs', roles: ['admin'] },
     { path: '/settings', icon: SettingsIcon, label: 'Settings', roles: ['admin', 'manager', 'officer', 'inspector'] },
   ];
 
   return (
     <div className="app-layout">
-      {/* Sidebar */}
+      {/* Sidebar (Dark Forest Green with Mountain Crest Logo) */}
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <div className="sidebar-logo">G</div>
-          <div className="sidebar-title">GeoMine AI</div>
-        </div>
-        <div style={{ padding: '0 20px', marginBottom: 16 }}>
-          <div style={{ fontSize: 10, color: '#c8956c', letterSpacing: 1, textTransform: 'uppercase', fontWeight: 600 }}>Active Context</div>
-          <div style={{ fontSize: 12, color: '#fff', fontWeight: 600, marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {activeMineTitle}
+          <div className="sidebar-logo-icon">
+            <GeoMineLogo size={30} />
           </div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
-            {context.district} District • {districtMines.length} Sites
+          <div className="sidebar-brand-text">
+            <span className="sidebar-title">GeoMine AI</span>
+            <span className="sidebar-subtitle">Smart Mining Governance</span>
           </div>
         </div>
 
@@ -194,151 +200,165 @@ export default function App() {
 
             return (
               <Link key={item.path} to={item.path} className={`nav-item ${isActive ? 'active' : ''}`}>
-                <div className="nav-icon"><item.icon size={16} /></div>
+                <div className="nav-icon"><item.icon size={17} /></div>
                 <span className="nav-label">{item.label}</span>
                 {item.badge > 0 && !sidebarCollapsed && (
-                  <span className={`nav-badge ${item.badgeDanger ? '' : 'warning'}`}>{item.badge}</span>
+                  <span className="nav-badge">{item.badge}</span>
                 )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="sidebar-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-          <Menu size={18} />
+        {/* Decorative Topographic Waves SVG */}
+        <div className="sidebar-waves-bg">
+          <svg width="240" height="90" viewBox="0 0 240 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 45C50 20 90 70 140 40C190 10 210 60 240 50" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="1.5" />
+            <path d="M0 60C60 35 100 85 150 55C200 25 220 75 240 65" stroke="rgba(16, 185, 129, 0.2)" strokeWidth="1.5" />
+            <path d="M0 75C70 50 110 95 160 70C210 45 230 85 240 80" stroke="rgba(16, 185, 129, 0.15)" strokeWidth="1.5" />
+          </svg>
+        </div>
+
+        {/* Sidebar Footer with Theme Toggle */}
+        <div className="sidebar-footer">
+          {!sidebarCollapsed ? (
+            <div className="theme-toggle-pill">
+              <button 
+                type="button" 
+                className={`theme-btn ${theme === 'light' ? 'active' : ''}`}
+                onClick={() => setTheme('light')}
+                title="Light Theme"
+              >
+                <Sun size={13} />
+              </button>
+              <button 
+                type="button" 
+                className={`theme-btn ${theme === 'dark' ? 'active' : ''}`}
+                onClick={() => setTheme('dark')}
+                title="Dark Theme"
+              >
+                <Moon size={13} />
+              </button>
+            </div>
+          ) : <div />}
+
+          <button 
+            type="button" 
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            <Menu size={18} />
+          </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="main-area">
-        {/* Topbar */}
+        {/* Topbar (Clean White with Green Accents) */}
         <header className="topbar">
-          <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            {!sidebarCollapsed && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div className="system-status">
-                  <div className="status-dot" /> SYSTEM ONLINE
-                </div>
-                {dbStatus === 'LIVE' && (
-                  <div className="db-status-pill live" title="Connected to PostgreSQL Database (geominedb)">
-                    <div className="status-dot" /> LIVE DB
-                  </div>
-                )}
-                {dbStatus === 'OFFLINE' && (
-                  <div 
-                    className="db-status-pill offline" 
-                    onClick={handleRetryDb}
-                    title="Backend unreachable. Click to retry connection"
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="status-dot" /> OFFLINE (RETRY)
-                  </div>
-                )}
-                {dbStatus === 'DEMO' && (
-                  <div 
-                    className="db-status-pill demo" 
-                    onClick={() => setDemoMode(false)}
-                    title="Running in Demo Data mode. Click to switch to LIVE DB"
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="status-dot" /> DEMO DATA
-                  </div>
-                )}
-              </div>
+          <div className="topbar-left">
+            {/* System Online Badge */}
+            <div className="system-badge-pill">
+              <span className="status-dot pulsing" />
+              <span>System Online</span>
+            </div>
+
+            {dbStatus === 'LIVE' && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#10B981', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '3px 8px', borderRadius: 9999 }}>
+                ● LIVE DB
+              </span>
+            )}
+            {dbStatus === 'OFFLINE' && (
+              <span 
+                onClick={handleRetryDb}
+                style={{ fontSize: 11, fontWeight: 700, color: '#EF4444', background: '#FEF2F2', border: '1px solid #FECACA', padding: '3px 8px', borderRadius: 9999, cursor: 'pointer' }}
+                title="Click to reconnect"
+              >
+                ● OFFLINE [RETRY]
+              </span>
             )}
 
-            {/* Live Interactive District & Mine Place Selector */}
-            <div className="place-selector-bar" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 6, 
-                background: 'rgba(200, 149, 108, 0.1)', 
-                border: '1px solid rgba(200, 149, 108, 0.25)', 
-                padding: '4px 10px', 
-                borderRadius: 6 
-              }}>
-                <MapPin size={13} style={{ color: 'var(--accent)' }} />
+            <div className="topbar-divider" />
+
+            {/* Interactive District Place Selector */}
+            <div className="selector-pill">
+              <MapPin size={15} style={{ color: 'var(--color-forest)' }} />
+              <select
+                value={context.districtId || (allDistricts.find(d => d.name === context.district)?.id) || 'TN-KARUR'}
+                onChange={handleDistrictChange}
+                title="Select District"
+              >
+                {allDistricts.map(d => (
+                  <option key={d.id} value={d.id}>
+                    {d.name} ({d.verifiedLocationCount} Mines)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Interactive Mine / Site Selector */}
+            {districtMines.length > 0 && (
+              <div className="selector-pill">
+                <Building2 size={15} style={{ color: 'var(--color-forest)' }} />
                 <select
-                  value={context.districtId || (allDistricts.find(d => d.name === context.district)?.id) || 'TN-KARUR'}
-                  onChange={handleDistrictChange}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--accent)',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    outline: 'none',
-                    fontFamily: 'inherit'
-                  }}
-                  title="Switch District Context"
+                  value={context.mineId || (districtMines[0]?.id) || ''}
+                  onChange={handleMineChange}
+                  title="Select Target Quarry"
                 >
-                  {allDistricts.map(d => (
-                    <option key={d.id} value={d.id} style={{ background: '#181b22', color: '#fff' }}>
-                      {d.name.toUpperCase()} ({d.verifiedLocationCount} MINES)
+                  {districtMines.map(m => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
                     </option>
                   ))}
                 </select>
               </div>
-
-              {districtMines.length > 0 && (
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 6, 
-                  background: 'rgba(255, 255, 255, 0.04)', 
-                  border: '1px solid rgba(255, 255, 255, 0.1)', 
-                  padding: '4px 10px', 
-                  borderRadius: 6 
-                }}>
-                  <Building2 size={13} style={{ color: '#94a3b8' }} />
-                  <select
-                    value={context.mineId || (districtMines[0]?.id) || ''}
-                    onChange={handleMineChange}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#e2e8f0',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      outline: 'none',
-                      maxWidth: 240,
-                      fontFamily: 'inherit'
-                    }}
-                    title="Switch Active Mine / Quarry"
-                  >
-                    {districtMines.map(m => (
-                      <option key={m.id} value={m.id} style={{ background: '#181b22', color: '#fff' }}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
           <div className="topbar-right">
-            <span className="topbar-time">{new Date().toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-            <button className="topbar-btn" onClick={() => navigate('/portal')} title="Tamil Nadu Mining GIS Portal">
-              <MapIcon size={16} />
+            {/* Search Input */}
+            <div className="search-box-pill">
+              <Search size={15} style={{ color: 'var(--text-muted)' }} />
+              <input 
+                type="text" 
+                placeholder="Search requirements, mines..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* Notifications Button */}
+            <button className="icon-btn" title="Statutory Notifications">
+              <Bell size={16} />
+              <span className="notification-dot" />
             </button>
-            <div className="user-avatar" title={`Logged in as ${role}`}>{role.charAt(0).toUpperCase()}</div>
-            <button className="topbar-btn" onClick={handleLogout} title="Log Out">
+
+            {/* User Profile Pill */}
+            <div className="user-profile-badge" onClick={handleLogout} title="Click to log out">
+              <div className="user-avatar-circle">
+                {role ? role.charAt(0).toUpperCase() : 'A'}
+              </div>
+              <span className="user-name-text">
+                {role === 'admin' ? 'Admin' : role.charAt(0).toUpperCase() + role.slice(1)}
+              </span>
+              <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />
+            </div>
+
+            {/* Logout shortcut */}
+            <button className="icon-btn" onClick={handleLogout} title="Log Out">
               <LogOut size={16} />
             </button>
           </div>
         </header>
 
-        {/* Page Viewport Wrapped in Error Boundary */}
+        {/* Page Content Viewport */}
         <main className="page-content">
           <ErrorBoundary title="GeoMine Module Error">
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/dashboard" element={<Dashboard district={context.district} mineId={context.mineId} />} />
-              <Route path="/compliance" element={<Compliance />} />
+              <Route path="/compliance" element={<Compliance district={context.district} />} />
               <Route path="/inspections" element={<Inspections />} />
               <Route path="/violations" element={<Violations />} />
               <Route path="/actions" element={<CorrectiveActions />} />

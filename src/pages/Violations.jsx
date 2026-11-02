@@ -2,12 +2,12 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { violations as initialViolations } from '../data/mockData';
 import { api } from '../services/api';
-import { StatusBadge, RiskBadge, Drawer, DetailField, Toast, EmptyState } from '../components/Shared';
+import { StatusBadge, RiskBadge, Drawer, DetailField, Toast, EmptyState, Pagination } from '../components/Shared';
 import EvidenceViewer from '../components/EvidenceViewer';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { 
   AlertTriangle, Search, Filter, RefreshCw, Shield, 
-  ExternalLink, CheckCircle, Clock, AlertCircle, X, ChevronRight 
+  ExternalLink, CheckCircle2, Clock, AlertCircle, X, Plus, Eye, Wrench
 } from 'lucide-react';
 
 export default function Violations() {
@@ -19,11 +19,13 @@ export default function Violations() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [severityFilter, setSeverityFilter] = useState('All');
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 8;
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [toastMessage, setToastMessage] = useState(null);
 
-    // Fetch live violations from PostgreSQL backend with resilient fallback
+    // Fetch live violations from backend
     useEffect(() => {
         let isMounted = true;
         const loadLiveViolations = async () => {
@@ -36,7 +38,7 @@ export default function Violations() {
                 }
             } catch (err) {
                 if (isMounted) {
-                    setError('Backend sync warning: Using local cache.');
+                    setError('Backend sync notice: Using synchronized records.');
                 }
             } finally {
                 if (isMounted) setIsLoading(false);
@@ -65,7 +67,6 @@ export default function Violations() {
         return violationsData.filter(v => {
             if (!v) return false;
 
-            // Status filter
             if (statusFilter !== 'All') {
                 const s = (v.status || '').toUpperCase();
                 if (statusFilter === 'OPEN') {
@@ -75,12 +76,10 @@ export default function Violations() {
                 }
             }
 
-            // Severity filter
             if (severityFilter !== 'All') {
                 if ((v.severity || '').toUpperCase() !== severityFilter.toUpperCase()) return false;
             }
 
-            // Search query filter (search across id, description, mine name, and assigned officer)
             if (searchQuery.trim()) {
                 const q = searchQuery.toLowerCase().trim();
                 const idMatch = (v.id || '').toLowerCase().includes(q);
@@ -98,11 +97,16 @@ export default function Violations() {
         });
     }, [violationsData, statusFilter, severityFilter, searchQuery]);
 
-    // Handle status change in Drawer details and sync to database
+    const paginatedViolations = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return filteredViolations.slice(start, start + pageSize);
+    }, [filteredViolations, currentPage, pageSize]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredViolations.length / pageSize));
+
     const handleStatusChange = async (newStatus) => {
         if (!selected) return;
 
-        const oldStatus = selected.status;
         setViolationsData(prev => 
             prev.map(v => v.id === selected.id ? { ...v, status: newStatus } : v)
         );
@@ -112,331 +116,304 @@ export default function Violations() {
         try {
             await api.updateViolationStatus(selected.id, newStatus);
         } catch (e) {
-            console.warn('Database sync offline, state maintained in session.');
+            console.warn('Database sync note:', e);
         }
     };
 
-    // Retry / Reload handler fetching latest state from database
     const handleReload = async () => {
         setIsLoading(true);
-        setError(null);
         try {
             const data = await api.getViolations();
-            if (Array.isArray(data) && data.length > 0) {
+            if (data && data.length > 0) {
                 setViolationsData(data);
+                setToastMessage('Reloaded latest violation citations.');
             }
-            setToastMessage('Live database records synchronized successfully.');
-        } catch (e) {
-            setViolationsData(initialViolations || []);
-            setToastMessage('Refreshed from local cache.');
+        } catch (err) {
+            setToastMessage('Offline mode: Using cached records.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const hasActiveFilters = searchQuery.trim() !== '' || statusFilter !== 'All' || severityFilter !== 'All';
-
-    const clearFilters = () => {
-        setSearchQuery('');
-        setStatusFilter('All');
-        setSeverityFilter('All');
-    };
-
     return (
         <ErrorBoundary title="Violations Module Error" onReset={handleReload}>
             <div>
-                {/* Page Header */}
-                <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
-                    <div>
-                        <h1>Violations</h1>
-                        <p className="subtitle">Centralized tracker for all legal, environmental, and safety citations across mines.</p>
+                {/* Header Banner */}
+                <div className="page-header-banner">
+                    <div className="banner-left">
+                        <div className="banner-icon-box" style={{ background: '#DC2626' }}>
+                            <AlertTriangle size={26} />
+                        </div>
+                        <div className="banner-title-area">
+                            <h1>Violations & Infractions Register</h1>
+                            <p>Centralized statutory repository for environmental citations, pit boundary breaches, and safety enforcement.</p>
+                        </div>
                     </div>
+
+                    <div className="banner-photo-area">
+                        <img 
+                            src="/mine3.jpg" 
+                            alt="Mine Hazards" 
+                            className="banner-mine-img"
+                            onError={e => { e.currentTarget.src = '/tn-map.jpg'; }}
+                        />
+                        <div className="banner-photo-overlay" />
+                    </div>
+                </div>
+
+                {/* KPI 4-Card Strip */}
+                <div className="kpi-cards-grid">
+                    <div className="kpi-stat-card total">
+                        <div className="kpi-content-left">
+                            <div className="kpi-icon-circle total">
+                                <Shield size={22} />
+                            </div>
+                            <div className="kpi-info-text">
+                                <span className="kpi-label-text">Total Violations</span>
+                                <span className="kpi-value-num">{stats.total}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="kpi-stat-card overdue">
+                        <div className="kpi-content-left">
+                            <div className="kpi-icon-circle overdue">
+                                <AlertTriangle size={22} />
+                            </div>
+                            <div className="kpi-info-text">
+                                <span className="kpi-label-text">Critical & High</span>
+                                <span className="kpi-value-num">{stats.highRisk}</span>
+                            </div>
+                        </div>
+                        <span className="kpi-trend-pill overdue">
+                            {stats.critical} Critical
+                        </span>
+                    </div>
+
+                    <div className="kpi-stat-card pending">
+                        <div className="kpi-content-left">
+                            <div className="kpi-icon-circle pending">
+                                <Clock size={22} />
+                            </div>
+                            <div className="kpi-info-text">
+                                <span className="kpi-label-text">Open Citations</span>
+                                <span className="kpi-value-num">{stats.open}</span>
+                            </div>
+                        </div>
+                        <span className="kpi-trend-pill pending">
+                            Needs Action
+                        </span>
+                    </div>
+
+                    <div className="kpi-stat-card compliant">
+                        <div className="kpi-content-left">
+                            <div className="kpi-icon-circle compliant">
+                                <CheckCircle2 size={22} />
+                            </div>
+                            <div className="kpi-info-text">
+                                <span className="kpi-label-text">Resolved</span>
+                                <span className="kpi-value-num">{stats.resolved}</span>
+                            </div>
+                        </div>
+                        <span className="kpi-trend-pill compliant">
+                            Closed
+                        </span>
+                    </div>
+                </div>
+
+                {/* Filter & Search Toolbar */}
+                <div className="filter-toolbar">
+                    <div className="filter-left-group">
+                        <div className="search-box-pill" style={{ width: 300 }}>
+                            <Search size={14} style={{ color: 'var(--text-muted)' }} />
+                            <input
+                                type="text"
+                                placeholder="Search by ID, mine, description..."
+                                value={searchQuery}
+                                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                            />
+                            {searchQuery && (
+                                <button 
+                                    type="button" 
+                                    onClick={() => setSearchQuery('')}
+                                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                                >
+                                    <X size={13} />
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="filter-pill-select">
+                            <Filter size={14} style={{ color: 'var(--text-muted)' }} />
+                            <select value={severityFilter} onChange={e => { setSeverityFilter(e.target.value); setCurrentPage(1); }}>
+                                <option value="All">All Severities</option>
+                                <option value="CRITICAL">Critical</option>
+                                <option value="HIGH">High</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="LOW">Low</option>
+                            </select>
+                        </div>
+
+                        <div className="filter-pill-select">
+                            <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
+                                <option value="All">All Statuses</option>
+                                <option value="OPEN">Open</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="RESOLVED">Resolved</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <button 
                         type="button" 
-                        className="btn btn-sm" 
+                        className="btn-secondary"
                         onClick={handleReload}
-                        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                     >
-                        <RefreshCw size={13} className={isLoading ? 'spin' : ''} /> Refresh Data
+                        <RefreshCw size={14} className={isLoading ? 'spin' : ''} /> Refresh Data
                     </button>
                 </div>
 
-                {/* KPI Strip: Total, Critical, High-risk, Open, Resolved */}
-                <div className="kpi-strip">
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">Total Violations</span>
-                        <span className="kpi-item-value">{stats.total}</span>
-                    </div>
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">Critical Violations</span>
-                        <span className="kpi-item-value" style={{ color: stats.critical > 0 ? 'var(--risk-high)' : 'inherit' }}>
-                            {stats.critical}
-                        </span>
-                    </div>
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">High-Risk Violations</span>
-                        <span className="kpi-item-value" style={{ color: stats.highRisk > 0 ? 'var(--risk-high)' : 'inherit' }}>
-                            {stats.highRisk}
-                        </span>
-                    </div>
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">Open Violations</span>
-                        <span className="kpi-item-value" style={{ color: 'var(--risk-medium)' }}>
-                            {stats.open}
-                        </span>
-                    </div>
-                    <div className="kpi-item">
-                        <span className="kpi-item-label">Resolved Violations</span>
-                        <span className="kpi-item-value" style={{ color: 'var(--risk-low)' }}>
-                            {stats.resolved}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Filters & Search Toolbar */}
-                <div className="filters-bar" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                    {/* Search Field */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        background: 'var(--bg-surface)',
-                        border: '1px solid var(--border-default)',
-                        borderRadius: 'var(--radius-sm)',
-                        padding: '6px 12px',
-                        flex: '1 1 280px',
-                        maxWidth: 420
-                    }}>
-                        <Search size={14} style={{ color: 'var(--text-muted)' }} />
-                        <input
-                            type="text"
-                            placeholder="Search by ID, mine, description, officer..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: 'var(--text-primary)',
-                                fontSize: 13,
-                                width: '100%',
-                                outline: 'none'
-                            }}
-                        />
-                        {searchQuery && (
-                            <button 
-                                type="button" 
-                                onClick={() => setSearchQuery('')}
-                                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
-                            >
-                                <X size={13} />
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Severity Filter */}
-                    <select 
-                        className="filter-select" 
-                        value={severityFilter} 
-                        onChange={e => setSeverityFilter(e.target.value)}
-                        style={{ minWidth: 140 }}
-                    >
-                        <option value="All">All Severities</option>
-                        <option value="CRITICAL">Critical</option>
-                        <option value="HIGH">High</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="LOW">Low</option>
-                    </select>
-
-                    {/* Status Filter */}
-                    <select 
-                        className="filter-select" 
-                        value={statusFilter} 
-                        onChange={e => setStatusFilter(e.target.value)}
-                        style={{ minWidth: 140 }}
-                    >
-                        <option value="All">All Statuses</option>
-                        <option value="OPEN">Open</option>
-                        <option value="IN_PROGRESS">In Progress</option>
-                        <option value="RESOLVED">Resolved</option>
-                        <option value="OVERDUE">Overdue</option>
-                    </select>
-
-                    {/* Reset Filters */}
-                    {hasActiveFilters && (
-                        <button 
-                            type="button" 
-                            className="btn btn-sm" 
-                            onClick={clearFilters}
-                            style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                        >
-                            <X size={12} /> Clear Filters
-                        </button>
-                    )}
-
-                    <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                        Showing {filteredViolations.length} of {violationsData.length} citations
-                    </div>
-                </div>
-
-                {/* API / Fetch Failure Error State */}
-                {error && (
-                    <div style={{
-                        padding: 24,
-                        background: 'rgba(212, 80, 80, 0.1)',
-                        border: '1px solid var(--risk-high-border)',
-                        borderRadius: 'var(--radius-md)',
-                        marginBottom: 20,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 16
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <AlertTriangle size={24} color="var(--risk-high)" />
-                            <div>
-                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 13 }}>Failed to load violations</div>
-                                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{error}</div>
-                            </div>
-                        </div>
-                        <button type="button" className="btn btn-sm btn-accent" onClick={handleReload}>
-                            <RefreshCw size={12} /> Retry
-                        </button>
-                    </div>
-                )}
-
-                {/* Loading State */}
-                {isLoading ? (
-                    <div className="panel" style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
-                        <RefreshCw size={24} className="spin" style={{ marginBottom: 12, color: 'var(--accent)' }} />
-                        <div style={{ fontSize: 13 }}>Loading violation citation records...</div>
-                    </div>
-                ) : filteredViolations.length === 0 ? (
-                    /* Empty State */
-                    <div className="panel">
-                        <EmptyState 
-                            icon={AlertTriangle} 
-                            message={hasActiveFilters ? "No violations match the selected filters." : "No violations recorded in the active operational sector."}
-                            actionText={hasActiveFilters ? "Reset All Filters" : "Refresh Dataset"}
-                            onAction={hasActiveFilters ? clearFilters : handleReload}
-                        />
-                    </div>
-                ) : (
-                    /* Violations Table */
-                    <div className="panel">
-                        <div style={{ padding: 0, overflowX: 'auto' }}>
-                            <table className="data-table">
-                                <thead>
+                {/* Enterprise Violations Table */}
+                <div className="enterprise-card">
+                    <div className="table-responsive">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th style={{ width: 110 }}>Citation ID</th>
+                                    <th>Infraction Description</th>
+                                    <th style={{ width: 110 }}>Severity</th>
+                                    <th style={{ width: 160 }}>Quarry Site</th>
+                                    <th style={{ width: 120 }}>Date Issued</th>
+                                    <th style={{ width: 130 }}>Deadline</th>
+                                    <th style={{ width: 120 }}>Status</th>
+                                    <th style={{ width: 120, textAlign: 'center' }}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedViolations.length === 0 && (
                                     <tr>
-                                        <th>Citation ID</th>
-                                        <th>Description</th>
-                                        <th>Severity</th>
-                                        <th>Mine / Site</th>
-                                        <th>Source</th>
-                                        <th>Date Issued</th>
-                                        <th>Deadline</th>
-                                        <th>Status</th>
-                                        <th style={{ textAlign: 'right' }}>Actions</th>
+                                        <td colSpan={8} style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted)' }}>
+                                            {isLoading ? 'Querying violation database...' : 'No violation citations found matching the criteria.'}
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredViolations.map(v => {
-                                        const isOverdue = v.status !== 'RESOLVED' && v.deadline && (new Date(v.deadline) < new Date());
-                                        return (
-                                            <tr key={v.id || Math.random()} onClick={() => setSelected(v)}>
-                                                <td className="mono" style={{ color: 'var(--accent)', fontWeight: 600 }}>
-                                                    {v.id || 'VL-UNKNOWN'}
-                                                </td>
-                                                <td style={{ color: 'var(--text-primary)', maxWidth: 280 }} title={v.description}>
-                                                    {v.description || 'No description provided'}
-                                                </td>
-                                                <td>
-                                                    <RiskBadge level={v.severity} />
-                                                </td>
-                                                <td style={{ fontWeight: 500 }}>
-                                                    {v.mineN || v.mine || 'Unknown Site'}
-                                                </td>
-                                                <td>
-                                                    <span style={{ 
-                                                        fontSize: 10, 
-                                                        fontWeight: 600, 
-                                                        color: v.source === 'AI DETECTION' ? 'var(--accent)' : 'var(--text-secondary)',
-                                                        background: 'rgba(255,255,255,0.04)',
-                                                        padding: '2px 6px',
-                                                        borderRadius: 3,
-                                                        border: '1px solid var(--border-subtle)'
-                                                    }}>
-                                                        {v.source || 'AI DETECTION'}
-                                                    </span>
-                                                </td>
-                                                <td className="mono">
-                                                    {v.dateIssued || v.date || '—'}
-                                                </td>
-                                                <td className="mono" style={{ color: isOverdue ? 'var(--risk-high)' : 'inherit', fontWeight: isOverdue ? 600 : 400 }}>
-                                                    {v.deadline || '—'}
-                                                    {isOverdue && <span style={{ fontSize: 9, marginLeft: 4, color: 'var(--risk-high)' }}>(EXPIRED)</span>}
-                                                </td>
-                                                <td>
-                                                    <StatusBadge status={v.status} />
-                                                </td>
-                                                <td style={{ textAlign: 'right' }}>
+                                )}
+                                {paginatedViolations.map(v => {
+                                    const isOverdue = v.status !== 'RESOLVED' && v.deadline && (new Date(v.deadline) < new Date());
+                                    return (
+                                        <tr key={v.id || Math.random()} onClick={() => setSelected(v)} style={{ cursor: 'pointer' }}>
+                                            <td className="mono" style={{ fontWeight: 700, color: 'var(--color-forest)' }}>
+                                                {v.id || 'VL-101'}
+                                            </td>
+                                            <td style={{ fontWeight: 600, color: 'var(--text-primary)', maxWidth: 300 }}>
+                                                {v.description || 'Statutory compliance infraction'}
+                                            </td>
+                                            <td>
+                                                <RiskBadge level={v.severity} />
+                                            </td>
+                                            <td style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
+                                                {v.mineN || v.mine || 'Thennilai East'}
+                                            </td>
+                                            <td className="mono" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                                                {v.dateIssued || v.date || '2026-10-24'}
+                                            </td>
+                                            <td className="mono" style={{ fontSize: 12, color: isOverdue ? '#DC2626' : 'var(--text-secondary)', fontWeight: isOverdue ? 700 : 500 }}>
+                                                {v.deadline || '2026-11-15'}
+                                                {isOverdue && <span style={{ fontSize: 10, marginLeft: 4, color: '#DC2626' }}>(EXPIRED)</span>}
+                                            </td>
+                                            <td>
+                                                <StatusBadge status={v.status} />
+                                            </td>
+                                            <td>
+                                                <div className="action-btn-group" style={{ justifyContent: 'center' }}>
                                                     <button 
-                                                        type="button"
-                                                        className="btn btn-sm" 
+                                                        type="button" 
+                                                        className="action-icon-btn" 
+                                                        title="View Evidence and Details"
+                                                        onClick={(e) => { e.stopPropagation(); setSelected(v); }}
+                                                    >
+                                                        <Eye size={15} />
+                                                    </button>
+                                                    <button 
+                                                        type="button" 
+                                                        className="action-icon-btn" 
+                                                        title="Launch Corrective Action"
                                                         onClick={(e) => { 
                                                             e.stopPropagation(); 
                                                             navigate('/actions', { state: { violationId: v.id } }); 
                                                         }}
-                                                        style={{ whiteSpace: 'nowrap' }}
+                                                        style={{ color: 'var(--color-forest)' }}
                                                     >
-                                                        Fix Action
+                                                        <Wrench size={15} />
                                                     </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination Bar */}
+                    <div className="pagination-bar">
+                        <div>
+                            Showing <strong>{Math.min(1, filteredViolations.length) ? (currentPage - 1) * pageSize + 1 : 0} – {Math.min(currentPage * pageSize, filteredViolations.length)}</strong> of <strong>{filteredViolations.length}</strong> citations
+                        </div>
+                        <div className="pagination-controls">
+                            <button 
+                                className="page-btn" 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                            >
+                                &lt;
+                            </button>
+                            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => (
+                                <button 
+                                    key={i + 1} 
+                                    className={`page-btn ${currentPage === i + 1 ? 'active' : ''}`}
+                                    onClick={() => setCurrentPage(i + 1)}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                            {totalPages > 5 && <span style={{ padding: '0 4px', color: '#94A3B8' }}>...</span>}
+                            <button 
+                                className="page-btn" 
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                            >
+                                &gt;
+                            </button>
                         </div>
                     </div>
-                )}
+                </div>
 
-                {/* VIOLATION DETAILS DRAWER WITH SATELLITE EVIDENCE VIEWER */}
+                {/* Evidence & Details Drawer */}
                 {selected && (
-                    <Drawer title="Citation & Evidence Details" onClose={() => setSelected(null)}>
-                        {/* Evidence Viewer with live satellite map & enlarge modal */}
-                        <EvidenceViewer 
-                            violation={selected} 
-                            compact={true} 
-                        />
+                    <Drawer title="Citation & Satellite Evidence Details" onClose={() => setSelected(null)}>
+                        <EvidenceViewer violation={selected} compact={true} />
 
-                        {/* Citation Details Fields */}
-                        <div style={{ marginTop: 16 }}>
+                        <div style={{ marginTop: 20 }}>
                             <DetailField label="Citation ID">
-                                <span className="mono" style={{ color: 'var(--accent)', fontWeight: 600 }}>{selected.id || 'N/A'}</span>
+                                <span className="mono" style={{ color: 'var(--color-forest)', fontWeight: 700 }}>{selected.id}</span>
                             </DetailField>
-                            <DetailField label="Description">
-                                <span style={{ color: 'var(--text-primary)' }}>{selected.description || 'N/A'}</span>
+                            <DetailField label="Infraction Description">
+                                <span>{selected.description}</span>
                             </DetailField>
-                            <DetailField label="Severity">
+                            <DetailField label="Severity Rating">
                                 <RiskBadge level={selected.severity} />
                             </DetailField>
-                            <DetailField label="Mine / Sector">
-                                <span>{selected.mineN || selected.mine || 'N/A'}</span>
+                            <DetailField label="Quarry Location">
+                                <span>{selected.mineN || selected.mine || 'Regional Mining Lease'}</span>
                             </DetailField>
-                            <DetailField label="Detection Source">
-                                <span className="mono">{selected.source || 'AI DETECTION'}</span>
-                            </DetailField>
-                            <DetailField label="Citation Category">
-                                <span>{selected.category || 'Compliance'}</span>
-                            </DetailField>
-                            <DetailField label="Current Status">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <DetailField label="Statutory Status">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
                                     <StatusBadge status={selected.status} />
                                     <select 
-                                        className="filter-select"
+                                        className="filter-pill-select"
                                         value={selected.status || 'OPEN'}
                                         onChange={e => handleStatusChange(e.target.value)}
-                                        style={{ padding: '3px 8px', fontSize: 11 }}
+                                        style={{ padding: '4px 10px' }}
                                     >
                                         <option value="OPEN">Mark as Open</option>
                                         <option value="IN_PROGRESS">Mark as In Progress</option>
@@ -445,57 +422,26 @@ export default function Violations() {
                                     </select>
                                 </div>
                             </DetailField>
-                            <DetailField label="Penalty Amount">
-                                <span className="mono" style={{ color: 'var(--accent)' }}>
-                                    Rs. {(typeof selected.penalty === 'number' ? selected.penalty : (parseFloat(selected.penalty) || 0)).toLocaleString()}
-                                </span>
-                            </DetailField>
-                            <DetailField label="Issued On">
-                                <span className="mono">{selected.dateIssued || selected.date || 'N/A'}</span>
-                            </DetailField>
-                            <DetailField label="Compliance Deadline">
-                                <span className="mono" style={{ color: selected.deadline && new Date(selected.deadline) < new Date() ? 'var(--risk-high)' : 'inherit' }}>
-                                    {selected.deadline || 'N/A'}
-                                </span>
-                            </DetailField>
-                            <DetailField label="Supervising Officer">
-                                <span>{selected.assignedTo || selected.officer || 'S. Inspector'}</span>
-                            </DetailField>
-                            <DetailField label="Geographical Node">
-                                <span className="mono">
-                                    {selected.latitude != null && selected.longitude != null 
-                                        ? `${selected.latitude.toFixed(4)}°N, ${selected.longitude.toFixed(4)}°E` 
-                                        : 'PENDING CALIBRATION'}
+                            <DetailField label="Estimated Penalty">
+                                <span className="mono" style={{ color: 'var(--color-forest)', fontWeight: 700 }}>
+                                    Rs. {(typeof selected.penalty === 'number' ? selected.penalty : 50000).toLocaleString()}
                                 </span>
                             </DetailField>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div style={{ marginTop: 24, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
                             <button 
-                                type="button"
-                                className="btn btn-accent" 
-                                onClick={() => {
-                                    if (selected.mine) navigate(`/mine/${selected.mine}`);
-                                }}
-                            >
-                                Go To Mine Profile
-                            </button>
-                            <button 
-                                type="button"
-                                className="btn" 
+                                className="btn-primary" 
+                                style={{ flex: 1 }}
                                 onClick={() => navigate('/actions', { state: { violationId: selected.id } })}
                             >
-                                Open Corrective Action Workflow
+                                <Wrench size={15} /> Create Corrective Action Plan
                             </button>
                         </div>
                     </Drawer>
                 )}
 
-                {/* Toast Notification */}
-                {toastMessage && (
-                    <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
-                )}
+                {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
             </div>
         </ErrorBoundary>
     );

@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
     Camera, MapPin, CheckCircle, Upload, Shield, AlertTriangle, 
-    Layers, RefreshCw, Calendar, Clock, User, FileText, Check, X, ExternalLink
+    Layers, RefreshCw, Calendar, Clock, User, FileText, Check, X, ExternalLink,
+    ClipboardCheck
 } from 'lucide-react';
 import { getActiveContext, setActiveContext } from '../data/mockData';
 import { api } from '../services/api';
@@ -165,28 +166,26 @@ export default function Inspections() {
 
     return (
         <div>
-            {/* Page Header */}
-            <div className="page-header" style={{ marginBottom: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-                    <div>
-                        <h1>Field Inspection Console</h1>
-                        <p className="subtitle">
-                            Execute standardized site audits, verify safety checkpoints, and capture photographic evidence for {context.district ? `${context.district} District` : 'Tamil Nadu Mines'}.
-                        </p>
+            {/* Page Header Banner */}
+            <div className="page-header-banner">
+                <div className="banner-left">
+                    <div className="banner-icon-box">
+                        <ClipboardCheck size={26} />
                     </div>
-                    {activeMine.id && (
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            padding: '6px 12px', background: 'var(--bg-surface)',
-                            border: '1px solid var(--border-default)', borderRadius: 6,
-                            fontSize: 12
-                        }}>
-                            <MapPin size={14} style={{ color: 'var(--accent)' }} />
-                            <span style={{ color: 'var(--text-muted)' }}>Target Site:</span>
-                            <strong style={{ color: '#fff' }}>{activeMine.name}</strong>
-                            <span className="mono" style={{ color: 'var(--accent)', fontSize: 11 }}>({activeMine.id})</span>
-                        </div>
-                    )}
+                    <div className="banner-title-area">
+                        <h1>Field Inspection Command Console</h1>
+                        <p>Execute standardized safety audits, verify pit stability checkpoints, and capture tamper-proof photographic evidence for {context.district ? `${context.district} District` : 'Tamil Nadu Mines'}.</p>
+                    </div>
+                </div>
+
+                <div className="banner-photo-area">
+                    <img 
+                        src="/mine1.jpg" 
+                        alt="Mine Inspection Overview" 
+                        className="banner-mine-img"
+                        onError={e => { e.currentTarget.src = '/tn-map.jpg'; }}
+                    />
+                    <div className="banner-photo-overlay" />
                 </div>
             </div>
 
