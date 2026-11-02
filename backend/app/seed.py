@@ -23,12 +23,22 @@ def seed_database():
     # Ensure all table schema columns exist (incremental schema migrations)
     try:
         from sqlalchemy import text
+        cols = [
+            ("file_url", "VARCHAR(500)"),
+            ("file_name", "VARCHAR(255)"),
+            ("file_size", "INTEGER"),
+            ("mime_type", "VARCHAR(100)")
+        ]
         with engine.connect() as conn:
-            conn.execute(text("ALTER TABLE documents ADD COLUMN IF NOT EXISTS file_url VARCHAR(500);"))
-            conn.execute(text("ALTER TABLE documents ADD COLUMN IF NOT EXISTS file_name VARCHAR(255);"))
-            conn.execute(text("ALTER TABLE documents ADD COLUMN IF NOT EXISTS file_size INTEGER;"))
-            conn.execute(text("ALTER TABLE documents ADD COLUMN IF NOT EXISTS mime_type VARCHAR(100);"))
-            conn.commit()
+            for col_name, col_type in cols:
+                try:
+                    if engine.dialect.name == "sqlite":
+                        conn.execute(text(f"ALTER TABLE documents ADD COLUMN {col_name} {col_type};"))
+                    else:
+                        conn.execute(text(f"ALTER TABLE documents ADD COLUMN IF NOT EXISTS {col_name} {col_type};"))
+                    conn.commit()
+                except Exception:
+                    pass
     except Exception as me:
         print(f"[Schema Migration Warning] {me}")
 
